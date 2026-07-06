@@ -1,0 +1,542 @@
+{
+  "events": [
+    {
+      "id": "evt1",
+      "title": "Hacker House LatAm 2026",
+      "description": "A 3-day co-living hackathon for developers building the future of decentralized tech. Connect with global sponsors, build prototypes, and pitch to leading VCs.",
+      "date": "2026-07-15",
+      "time": "09:00 AM - 08:00 PM",
+      "location": "Buenos Aires, Argentina & Online",
+      "category": "Hacker House",
+      "expectedAttendance": 250,
+      "actualAttendance": 186,
+      "image": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80",
+      "sponsors": [
+        {
+          "id": "sp1",
+          "name": "Google Cloud",
+          "logo": "⚡",
+          "tier": "Platinum",
+          "link": "https://cloud.google.com",
+          "impressions": 1240,
+          "clicks": 145
+        },
+        {
+          "id": "sp2",
+          "name": "Stripe",
+          "logo": "💳",
+          "tier": "Platinum",
+          "link": "https://stripe.com",
+          "impressions": 980,
+          "clicks": 88
+        },
+        {
+          "id": "sp3",
+          "name": "Privy",
+          "logo": "🔑",
+          "tier": "Gold",
+          "link": "https://privy.io",
+          "impressions": 850,
+          "clicks": 112
+        }
+      ],
+      "activities": [
+        {
+          "id": "act1_1",
+          "title": "Welcome & Onboarding Check-In",
+          "description": "Scan your QR code at the reception desk to complete your profile, receive your welcome kit, and activate your embedded wallet.",
+          "points": 100,
+          "type": "CheckIn",
+          "required": true
+        },
+        {
+          "id": "act1_2",
+          "title": "Opening Ceremony & Sponsor Briefings",
+          "description": "Learn about the hackathon tracks, prizes, API keys, and workshops hosted by Google Cloud and Stripe.",
+          "points": 150,
+          "type": "Keynote",
+          "required": true
+        },
+        {
+          "id": "act1_3",
+          "title": "Workshop: Dynamic POAPs with Privy",
+          "description": "Deep dive into seedless wallets, Privy Auth, and generating NFT credentials dynamically on-chain.",
+          "points": 200,
+          "type": "Workshop",
+          "required": false,
+          "sponsorId": "sp3"
+        },
+        {
+          "id": "act1_4",
+          "title": "Project Submission & Pitch Desk",
+          "description": "Submit your completed project repository and present a 3-minute pitch to the judging panel.",
+          "points": 400,
+          "type": "Hackathon",
+          "required": true
+        },
+        {
+          "id": "act1_5",
+          "title": "Sponsor Booth Rally: Google Cloud API",
+          "description": "Visit the Google Cloud booth, deploy a simple template, and scan the booth code for an exclusive badge.",
+          "points": 120,
+          "type": "SponsorVisit",
+          "required": false,
+          "sponsorId": "sp1"
+        },
+        {
+          "id": "act1_6",
+          "title": "Event Feedback & Core Survey",
+          "description": "Share your thoughts about the Hacker House organization, venue, and sponsors to claim your Master POAP.",
+          "points": 80,
+          "type": "Feedback",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "evt2",
+      "title": "Zero-Friction Web3 Auth Workshop",
+      "description": "An interactive hands-on workshop focused on seedless onboarding, smart accounts, and embedded wallets using Privy.",
+      "date": "2026-07-22",
+      "time": "02:00 PM - 05:00 PM",
+      "location": "Bogotá, Colombia (Virtual & Physical)",
+      "category": "Workshop",
+      "expectedAttendance": 120,
+      "actualAttendance": 97,
+      "image": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1200&q=80",
+      "sponsors": [
+        {
+          "id": "sp3",
+          "name": "Privy",
+          "logo": "🔑",
+          "tier": "Gold",
+          "link": "https://privy.io",
+          "impressions": 850,
+          "clicks": 112
+        },
+        {
+          "id": "sp4",
+          "name": "Vercel",
+          "logo": "▲",
+          "tier": "Gold",
+          "link": "https://vercel.com",
+          "impressions": 720,
+          "clicks": 54
+        }
+      ],
+      "activities": [
+        {
+          "id": "act2_1",
+          "title": "Workshop Entrance Check-In",
+          "description": "Confirm your registered ticket details at the main door to enter.",
+          "points": 50,
+          "type": "CheckIn",
+          "required": true
+        },
+        {
+          "id": "act2_2",
+          "title": "Hands-on Coding Session",
+          "description": "Integrate Privy React SDK, handle social authentication, and trigger on-chain operations with embedded wallets.",
+          "points": 250,
+          "type": "Workshop",
+          "required": true,
+          "sponsorId": "sp3"
+        },
+        {
+          "id": "act2_3",
+          "title": "Session Rating & Feedback",
+          "description": "Let us know how we can improve our developer tutorials.",
+          "points": 50,
+          "type": "Feedback",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "evt3",
+      "title": "AI & Web3 Founder Meetup",
+      "description": "A high-level networking event for startup founders, investors, and engineers working at the intersection of AI models and decentralized protocols.",
+      "date": "2026-08-05",
+      "time": "07:00 PM - 10:00 PM",
+      "location": "Mexico City, Mexico",
+      "category": "Meetup",
+      "expectedAttendance": 80,
+      "actualAttendance": 74,
+      "image": "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80",
+      "sponsors": [
+        {
+          "id": "sp1",
+          "name": "Google Cloud",
+          "logo": "⚡",
+          "tier": "Platinum",
+          "link": "https://cloud.google.com",
+          "impressions": 1240,
+          "clicks": 145
+        },
+        {
+          "id": "sp4",
+          "name": "Vercel",
+          "logo": "▲",
+          "tier": "Gold",
+          "link": "https://vercel.com",
+          "impressions": 720,
+          "clicks": 54
+        },
+        {
+          "id": "sp5",
+          "name": "POAP.xyz",
+          "logo": "🏅",
+          "tier": "Silver",
+          "link": "https://poap.xyz",
+          "impressions": 540,
+          "clicks": 42
+        }
+      ],
+      "activities": [
+        {
+          "id": "act3_1",
+          "title": "Networking Check-In",
+          "description": "Grab a name badge, claim your welcome drink, and register your wallet address.",
+          "points": 50,
+          "type": "CheckIn",
+          "required": true
+        },
+        {
+          "id": "act3_2",
+          "title": "Panel Discussion: The Future of Autonomous Agents",
+          "description": "A 45-minute discussion on the role of decentralized compute and AI agents in the digital economy.",
+          "points": 100,
+          "type": "Keynote",
+          "required": true
+        },
+        {
+          "id": "act3_3",
+          "title": "Vercel Fast Deploy Pitch",
+          "description": "Watch 5 founders demo their AI products deployed on Vercel Edge Networks in 1-minute lightning rounds.",
+          "points": 100,
+          "type": "Workshop",
+          "required": false,
+          "sponsorId": "sp4"
+        }
+      ]
+    }
+  ],
+  "attendees": [
+    {
+      "id": "at1",
+      "name": "Ana Martinez",
+      "email": "ana.martinez@hacker.io",
+      "walletAddress": "0x9a3f2b...8e4c",
+      "walletType": "MetaMask",
+      "joinedAt": "2026-06-25",
+      "points": 850,
+      "completedActivities": [
+        "act1_1",
+        "act1_2",
+        "act1_3",
+        "act1_5"
+      ],
+      "badges": [
+        {
+          "id": "bd1",
+          "title": "Genesis Pioneer",
+          "description": "Unlocked for setting up an embedded wallet and completing the welcome check-in activity.",
+          "image": "🏅",
+          "unlockedAt": "2026-06-25",
+          "nftId": "NFT-7821",
+          "dynamicMetadata": {
+            "level": 2,
+            "activitiesCompleted": 4,
+            "completionTime": "2026-06-25T14:30:00Z",
+            "txHash": "0x32c...f11"
+          }
+        },
+        {
+          "id": "bd2",
+          "title": "Code Alchemist",
+          "description": "Unlocked for participating in high-intensity workshops and submitting hackathon code repos.",
+          "image": "🧙‍♂️",
+          "unlockedAt": "2026-06-26",
+          "nftId": "NFT-7890",
+          "dynamicMetadata": {
+            "level": 3,
+            "activitiesCompleted": 4,
+            "completionTime": "2026-06-26T16:00:00Z",
+            "txHash": "0x88b...e21"
+          }
+        }
+      ],
+      "checkedIn": true,
+      "calendarSynced": true
+    },
+    {
+      "id": "at2",
+      "name": "Carlos Perez",
+      "email": "carlos.dev@gmail.com",
+      "walletAddress": "0x3f5c8d...2a1b",
+      "walletType": "Privy",
+      "joinedAt": "2026-06-28",
+      "points": 720,
+      "completedActivities": [
+        "act1_1",
+        "act1_2",
+        "act1_5"
+      ],
+      "badges": [
+        {
+          "id": "bd1",
+          "title": "Genesis Pioneer",
+          "description": "Unlocked for setting up an embedded wallet and completing the welcome check-in activity.",
+          "image": "🏅",
+          "unlockedAt": "2026-06-28",
+          "nftId": "NFT-8120",
+          "dynamicMetadata": {
+            "level": 1,
+            "activitiesCompleted": 3,
+            "completionTime": "2026-06-28T10:15:00Z",
+            "txHash": "0xac3...990"
+          }
+        }
+      ],
+      "checkedIn": true,
+      "calendarSynced": false
+    },
+    {
+      "id": "at3",
+      "name": "Sofia Lopez",
+      "email": "sofia.founder@cyber.tech",
+      "walletAddress": "0x7e1a4d...9d2f",
+      "walletType": "Phantom",
+      "joinedAt": "2026-06-29",
+      "points": 630,
+      "completedActivities": [
+        "act1_1",
+        "act1_3"
+      ],
+      "badges": [
+        {
+          "id": "bd1",
+          "title": "Genesis Pioneer",
+          "description": "Unlocked for setting up an embedded wallet and completing the welcome check-in activity.",
+          "image": "🏅",
+          "unlockedAt": "2026-06-29",
+          "nftId": "NFT-8344",
+          "dynamicMetadata": {
+            "level": 1,
+            "activitiesCompleted": 2,
+            "completionTime": "2026-06-29T11:45:00Z",
+            "txHash": "0x55a...a10"
+          }
+        }
+      ],
+      "checkedIn": true,
+      "calendarSynced": true
+    },
+    {
+      "id": "at4",
+      "name": "Diego Flores",
+      "email": "diego.f@tech.co",
+      "walletAddress": "0x2b8e3a...4f5c",
+      "walletType": "Coinbase",
+      "joinedAt": "2026-06-30",
+      "points": 450,
+      "completedActivities": [
+        "act1_1"
+      ],
+      "badges": [],
+      "checkedIn": false,
+      "calendarSynced": false
+    },
+    {
+      "id": "at_1782959467847",
+      "name": "Joaquín Estéban (Demo)",
+      "email": "demo@latamprotocol.com",
+      "walletAddress": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+      "walletType": "Privy",
+      "joinedAt": "2026-07-02",
+      "points": 100,
+      "completedActivities": [],
+      "badges": [
+        {
+          "id": "bd1",
+          "title": "Genesis Pioneer",
+          "description": "Unlocked for setting up an embedded wallet and completing the welcome check-in activity.",
+          "image": "🏅",
+          "unlockedAt": "2026-07-02T02:31:07.847Z",
+          "nftId": "BADGE-NFT-462112",
+          "dynamicMetadata": {
+            "level": 1,
+            "activitiesCompleted": 0,
+            "completionTime": "2026-07-02T02:31:07.847Z",
+            "txHash": "0xf06b5e17bfe21ae64175a010d8829fc624c2d441"
+          }
+        }
+      ],
+      "checkedIn": false,
+      "calendarSynced": false,
+      "registeredEvents": [],
+      "registeredActivities": []
+    }
+  ],
+  "sponsors": [
+    {
+      "id": "sp1",
+      "name": "Google Cloud",
+      "logo": "⚡",
+      "tier": "Platinum",
+      "link": "https://cloud.google.com",
+      "impressions": 1240,
+      "clicks": 146
+    },
+    {
+      "id": "sp2",
+      "name": "Stripe",
+      "logo": "💳",
+      "tier": "Platinum",
+      "link": "https://stripe.com",
+      "impressions": 980,
+      "clicks": 88
+    },
+    {
+      "id": "sp3",
+      "name": "Privy",
+      "logo": "🔑",
+      "tier": "Gold",
+      "link": "https://privy.io",
+      "impressions": 850,
+      "clicks": 112
+    },
+    {
+      "id": "sp4",
+      "name": "Vercel",
+      "logo": "▲",
+      "tier": "Gold",
+      "link": "https://vercel.com",
+      "impressions": 720,
+      "clicks": 55
+    },
+    {
+      "id": "sp5",
+      "name": "POAP.xyz",
+      "logo": "🏅",
+      "tier": "Silver",
+      "link": "https://poap.xyz",
+      "impressions": 540,
+      "clicks": 42
+    }
+  ],
+  "notifications": [
+    {
+      "id": "notif_1782961092887",
+      "title": "🎯 Actividad Completada",
+      "message": "Joaquín Estéban (Demo) completó \"Vercel Fast Deploy Pitch\" y obtuvo 100 puntos.",
+      "timestamp": "2026-07-02T02:58:12.887Z",
+      "read": false
+    },
+    {
+      "id": "notif_1782961091447",
+      "title": "✍️ Inscrito en Actividad",
+      "message": "Te has inscrito exitosamente en la actividad \"Vercel Fast Deploy Pitch\".",
+      "timestamp": "2026-07-02T02:58:11.447Z",
+      "read": false
+    },
+    {
+      "id": "notif_1782960379445",
+      "title": "🎟️ Registro Completado",
+      "message": "Te has registrado correctamente en \"AI & Web3 Founder Meetup\". ¡Prepárate para participar!",
+      "timestamp": "2026-07-02T02:46:19.445Z",
+      "read": false
+    },
+    {
+      "id": "notif_1782960197788",
+      "title": "🎯 Actividad Completada",
+      "message": "Joaquín Estéban (Demo) completó \"Session Rating & Feedback\" y obtuvo 50 puntos.",
+      "timestamp": "2026-07-02T02:43:17.788Z",
+      "read": false
+    },
+    {
+      "id": "notif_1782960194088",
+      "title": "🎯 Actividad Completada",
+      "message": "Joaquín Estéban (Demo) completó \"Hands-on Coding Session\" y obtuvo 250 puntos.",
+      "timestamp": "2026-07-02T02:43:14.088Z",
+      "read": false
+    },
+    {
+      "id": "notif_1782960191564",
+      "title": "🎯 Actividad Completada",
+      "message": "Joaquín Estéban (Demo) completó \"Workshop Entrance Check-In\" y obtuvo 50 puntos.",
+      "timestamp": "2026-07-02T02:43:11.564Z",
+      "read": false
+    },
+    {
+      "id": "notif_1782960190034",
+      "title": "🎟️ Registro Completado",
+      "message": "Te has registrado correctamente en \"Zero-Friction Web3 Auth Workshop\". ¡Prepárate para participar!",
+      "timestamp": "2026-07-02T02:43:10.034Z",
+      "read": false
+    },
+    {
+      "id": "notif_1782960037547",
+      "title": "🎯 Actividad Completada",
+      "message": "Joaquín Estéban (Demo) completó \"Event Feedback & Core Survey\" y obtuvo 80 puntos.",
+      "timestamp": "2026-07-02T02:40:37.547Z",
+      "read": false
+    },
+    {
+      "id": "notif_1782960034223",
+      "title": "🎯 Actividad Completada",
+      "message": "Joaquín Estéban (Demo) completó \"Project Submission & Pitch Desk\" y obtuvo 400 puntos.",
+      "timestamp": "2026-07-02T02:40:34.223Z",
+      "read": false
+    },
+    {
+      "id": "notif_1782960029398",
+      "title": "🎯 Actividad Completada",
+      "message": "Joaquín Estéban (Demo) completó \"Opening Ceremony & Sponsor Briefings\" y obtuvo 150 puntos.",
+      "timestamp": "2026-07-02T02:40:29.398Z",
+      "read": false
+    },
+    {
+      "id": "notif_1782960026976",
+      "title": "🎯 Actividad Completada",
+      "message": "Joaquín Estéban (Demo) completó \"Welcome & Onboarding Check-In\" y obtuvo 100 puntos.",
+      "timestamp": "2026-07-02T02:40:26.977Z",
+      "read": false
+    },
+    {
+      "id": "notif_1782960022458",
+      "title": "🎟️ Registro Completado",
+      "message": "Te has registrado correctamente en \"Hacker House LatAm 2026\". ¡Prepárate para participar!",
+      "timestamp": "2026-07-02T02:40:22.458Z",
+      "read": false
+    },
+    {
+      "id": "notif_1782959643926",
+      "title": "🎯 Actividad Completada",
+      "message": "Joaquín Estéban (Demo) completó \"Networking Check-In\" y obtuvo 50 puntos.",
+      "timestamp": "2026-07-02T02:34:03.926Z",
+      "read": false
+    },
+    {
+      "id": "notif_1782959642561",
+      "title": "🎯 Actividad Completada",
+      "message": "Joaquín Estéban (Demo) completó \"Panel Discussion: The Future of Autonomous Agents\" y obtuvo 100 puntos.",
+      "timestamp": "2026-07-02T02:34:02.561Z",
+      "read": false
+    },
+    {
+      "id": "notif_1782959467847",
+      "title": "🚀 Onboarding Completado",
+      "message": "¡Bienvenido Joaquín Estéban (Demo)! Has recibido tu primera insignia NFT: Genesis Pioneer.",
+      "timestamp": "2026-07-02T02:31:07.847Z",
+      "read": false
+    },
+    {
+      "id": "notif_1",
+      "title": "¡Te damos la bienvenida!",
+      "message": "Conéctate mediante Privy para recibir tu primera insignia de Onboarding.",
+      "timestamp": "2026-07-02T01:53:23.036Z",
+      "read": true
+    }
+  ]
+}

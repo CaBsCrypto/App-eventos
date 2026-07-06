@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Tech Event Onboarding and Participation Protocol",
+  "description": "An onboarding, event creation, gamification, and proof of participation (POAP) platform for tech events, integrated with Google Calendar, Sheets, Gmail, and digital wallets.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
