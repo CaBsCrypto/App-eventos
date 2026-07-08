@@ -10,6 +10,7 @@ import BadgeDisplay from './components/BadgeDisplay';
 import Leaderboard from './components/Leaderboard';
 import AdminPanel from './components/AdminPanel';
 import OfflineIndicator from './components/OfflineIndicator';
+import Landing from './components/Landing';
 import { api } from './lib/api';
 import { useApp } from './state/AppProvider';
 
@@ -31,6 +32,7 @@ export default function App() {
     deleteActivity: handleDeleteActivity,
     mintPoap: handleMintPOAP,
     trackSponsorClick: handleSponsorDirectClick,
+    view, setView,
     selectedEvent, setSelectedEvent,
     screen: activeView, setScreen: setActiveView,
     isOffline, toggleOffline: handleToggleOffline,
@@ -67,6 +69,7 @@ export default function App() {
       try {
         const matched = await api.events.byCode(code);
         setSelectedEvent(matched);
+        setView('app');
         setActiveView('events');
       } catch (err) {
         console.error('Error al resolver invitación:', err);
@@ -151,6 +154,16 @@ export default function App() {
     else if (attendanceFilter === 'Large') matchesAttendance = evt.expectedAttendance > 200;
     return matchesSearch && matchesCategory && matchesAttendance;
   });
+
+  // Vista pública (landing). Los hooks de arriba corren siempre; el early
+  // return sólo cambia lo que se pinta.
+  if (view === 'landing') {
+    return (
+      <div className="fixed inset-0 text-zinc-100 font-sans antialiased overflow-hidden" style={{ background: 'var(--ep-landing-bg)' }}>
+        <Landing />
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-zinc-950 text-zinc-100 flex flex-col font-sans antialiased overflow-hidden" id="app-root-container">

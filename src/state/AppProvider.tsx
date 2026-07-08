@@ -108,8 +108,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // auth
   const [currentAttendee, setCurrentAttendee] = useState<Attendee | null>(null);
 
-  // navegación
-  const [view, setView] = useState<AppView>('app');
+  // navegación (arranca en la landing pública del prototipo)
+  const [view, setView] = useState<AppView>('landing');
   const [screen, setScreen] = useState<AppScreen>('events');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
