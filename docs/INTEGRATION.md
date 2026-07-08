@@ -40,8 +40,8 @@ delegan en `src/lib/api`. Toda la red vive en una sola capa.
 
 | # | Pantalla (handoff)     | `screen`      | Estado / hook            | Endpoints backend                          | Estado actual |
 |---|------------------------|---------------|--------------------------|--------------------------------------------|---------------|
-| 1 | Landing (pública)      | `view=landing`| useNav / useUI           | — (estática)                               | ⬜ por crear |
-| 2 | Descubrir              | `discover`    | useData (organizers)     | `GET /discover`, `POST /organizers/:id/follow` | ⬜ falta backend |
+| 1 | Landing (pública)      | `view=landing`| useNav / useUI           | — (estática)                               | ✅ hecha |
+| 2 | Descubrir              | `discover`    | useApp.follows           | `GET /discover`, `POST /organizers/:id/follow` | ✅ (follows client-side) |
 | 3 | Eventos                | `events`      | useData.events           | `GET /api/events`                          | ✅ funciona |
 | 4 | Invitación             | `invite`      | useNav.selectedEvent     | `GET /api/events/by-code/:code`, `register-event` | ✅ (en EventDetail) |
 | 5 | Crear evento           | `create`      | useData / AdminPanel     | `POST /api/events`                         | ✅ (falta badge designer) |
