@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Compass, Trophy, Award, Bell, Wallet, LogOut,
-  Sparkles, Shield, ArrowUpRight, Plus, Globe
+  Sparkles, Shield, ArrowUpRight, Plus, Globe, User
 } from 'lucide-react';
 import EventCard from './components/EventCard';
 import EventDetail from './components/EventDetail';
@@ -399,25 +399,25 @@ export default function App() {
           <span>Descubrir</span>
         </button>
         <button
-          onClick={() => { setActiveView('leaderboard'); }}
-          className={`flex flex-col items-center gap-1.5 transition-all cursor-pointer ${activeView === 'leaderboard' ? 'text-indigo-400 scale-105 font-black' : 'hover:text-zinc-200'}`}
+          onClick={() => { setActiveView('create'); }}
+          className={`flex flex-col items-center gap-1.5 transition-all cursor-pointer ${activeView === 'create' ? 'text-indigo-400 scale-105 font-black' : 'hover:text-zinc-200'}`}
         >
-          <Trophy className="w-5 h-5" />
-          <span>Leaderboard</span>
+          <Plus className="w-5 h-5" />
+          <span>Crear</span>
         </button>
         <button
           onClick={() => { setActiveView('badges'); }}
           className={`flex flex-col items-center gap-1.5 transition-all cursor-pointer ${activeView === 'badges' ? 'text-indigo-400 scale-105 font-black' : 'hover:text-zinc-200'}`}
         >
           <Award className="w-5 h-5" />
-          <span>Mis Insignias</span>
+          <span>Insignias</span>
         </button>
         <button
-          onClick={() => { setActiveView('create'); }}
-          className={`flex flex-col items-center gap-1.5 transition-all cursor-pointer ${activeView === 'create' ? 'text-indigo-400 scale-105 font-black' : 'hover:text-zinc-200'}`}
+          onClick={() => { setActiveView('history'); }}
+          className={`flex flex-col items-center gap-1.5 transition-all cursor-pointer ${activeView === 'history' ? 'text-indigo-400 scale-105 font-black' : 'hover:text-zinc-200'}`}
         >
-          <Plus className="w-5 h-5" />
-          <span>Crear</span>
+          <User className="w-5 h-5" />
+          <span>Historial</span>
         </button>
       </div>
 
