@@ -85,6 +85,7 @@ interface AppContextValue {
   // --- perfil (Historial / Ajustes) ---
   profile: Profile;
   updateProfile: (partial: Partial<Profile>) => void;
+  saveProfile: () => Promise<boolean>;
 
   // --- offline ---
   isOffline: boolean;
@@ -158,6 +159,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setProfile((prev) => ({ ...prev, ...partial }));
   }, []);
 
+  // Persiste el perfil en el backend (Ajustes → Guardar). Requiere sesión.
+  const saveProfile = useCallback(async (): Promise<boolean> => {
+    if (!currentAttendee) return false;
+    try {
+      const updated = await api.attendees.updateProfile(currentAttendee.id, {
+        name: profile.name,
+        user: profile.user,
+        email: profile.email,
+        city: profile.city,
+        bio: profile.bio,
+        phone: profile.phone ?? '',
+        handles: profile.handles as unknown as Record<string, string>,
+      });
+      setCurrentAttendee(updated);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return true;
+    } catch (e) {
+      console.error('Error al guardar perfil:', e);
+      return false;
+    }
+  }, [currentAttendee, profile]);
+
   // ui
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [accent, setAccent] = useState('#6366f1');
@@ -179,8 +202,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (currentAttendee) {
       setProfile((prev) => ({
         ...prev,
+        name: currentAttendee.name || prev.name,
+        email: currentAttendee.email || prev.email,
         wallet: currentAttendee.walletAddress || prev.wallet,
         xp: currentAttendee.points ?? prev.xp,
+        // Campos de perfil persistidos (si el attendee ya los tiene).
+        user: currentAttendee.user ?? prev.user,
+        city: currentAttendee.city ?? prev.city,
+        bio: currentAttendee.bio ?? prev.bio,
+        phone: currentAttendee.phone ?? prev.phone,
+        handles: currentAttendee.handles ?? prev.handles,
       }));
       // Adopta los follows persistidos del backend al iniciar sesión.
       if (currentAttendee.follows) {
@@ -556,6 +587,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       isFollowing,
       profile,
       updateProfile,
+      saveProfile,
       isOffline,
       toggleOffline,
       offlineQueue,
@@ -581,7 +613,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [
       events, attendees, notifications, refetch, currentAttendee, completeOnboard, onboard, onboardDemo,
       disconnect, view, screen, selectedEvent, follows, toggleFollow, isFollowing,
-      profile, updateProfile, isOffline, toggleOffline, offlineQueue,
+      profile, updateProfile, saveProfile, isOffline, toggleOffline, offlineQueue,
       enqueueOffline, syncQueue, isSyncing, toasts, toast, dismissToast, accent, xpBurst,
       completeActivity, registerEvent, unregisterEvent, registerActivity, deleteActivity,
       mintPoap, trackSponsorClick, clearNotifications, addNotification,

@@ -37,6 +37,12 @@ export const attendeesApi = {
   toggleFollow: (id: string, organizerId: string) =>
     http.post<Attendee>(`/api/attendees/${id}/toggle-follow`, { organizerId }),
 
+  /** POST /api/attendees/:id/profile — persiste los campos de perfil (Ajustes). */
+  updateProfile: (
+    id: string,
+    profile: Partial<{ name: string; user: string; email: string; city: string; bio: string; phone: string; handles: Record<string, string> }>,
+  ) => http.post<Attendee>(`/api/attendees/${id}/profile`, profile),
+
   /** POST /api/attendees/:id/activities/complete — completa misión, otorga XP. */
   completeActivity: (id: string, activityId: string, eventId: string) =>
     http.post<Attendee>(`/api/attendees/${id}/activities/complete`, { activityId, eventId }),

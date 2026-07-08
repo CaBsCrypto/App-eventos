@@ -351,6 +351,26 @@ app.post('/api/attendees/:id/register-event', async (req, res) => {
   res.json(attendee);
 });
 
+// 4.6a Update attendee profile (Ajustes) — PATCH parcial de campos de perfil.
+app.post('/api/attendees/:id/profile', async (req, res) => {
+  db = loadDatabase();
+  const attendee = db.attendees.find(a => a.id === req.params.id);
+  if (!attendee) {
+    res.status(404).json({ error: 'Attendee not found' });
+    return;
+  }
+  const { name, user, email, city, bio, phone, handles } = req.body;
+  if (typeof name === 'string') attendee.name = name;
+  if (typeof user === 'string') attendee.user = user;
+  if (typeof email === 'string') attendee.email = email;
+  if (typeof city === 'string') attendee.city = city;
+  if (typeof bio === 'string') attendee.bio = bio;
+  if (typeof phone === 'string') attendee.phone = phone;
+  if (handles && typeof handles === 'object') attendee.handles = { ...attendee.handles, ...handles };
+  await saveDatabase(db);
+  res.json(attendee);
+});
+
 // 4.6b Toggle follow organizer (Descubrir)
 app.post('/api/attendees/:id/toggle-follow', async (req, res) => {
   db = loadDatabase();

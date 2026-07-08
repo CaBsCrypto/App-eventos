@@ -21,7 +21,7 @@ function initials(name: string) {
 }
 
 export default function Settings() {
-  const { profile, updateProfile, toast } = useApp();
+  const { profile, updateProfile, saveProfile, toast } = useApp();
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
   const [extraEmails, setExtraEmails] = useState<string[]>([]);
@@ -30,9 +30,13 @@ export default function Settings() {
   const [linked, setLinked] = useState<Record<string, boolean>>({ Google: true, Apple: false, Zoom: false, Solana: false, Ethereum: true });
   const [otherDevices, setOtherDevices] = useState(true);
 
-  const save = () => {
+  const save = async () => {
+    const ok = await saveProfile();
     setSaved(true);
-    toast('Perfil actualizado', 'Tus datos públicos se guardaron.');
+    toast(
+      ok ? 'Perfil actualizado' : 'Guardado local',
+      ok ? 'Tus datos se guardaron en el servidor.' : 'Inicia sesión para persistir en el servidor.',
+    );
     setTimeout(() => setSaved(false), 2000);
   };
   const copyWallet = () => {
