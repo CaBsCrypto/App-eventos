@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Compass, Trophy, Award, Bell, Wallet, LogOut,
-  Sparkles, Shield, ArrowUpRight, Plus, Globe, User
+  Sparkles, Shield, ArrowUpRight, Plus, Globe, User, Search
 } from 'lucide-react';
 import EventCard from './components/EventCard';
 import EventDetail from './components/EventDetail';
@@ -15,6 +15,7 @@ import Discover from './components/Discover';
 import History from './components/History';
 import Settings from './components/Settings';
 import XpBurst from './components/XpBurst';
+import GlobalSearch from './components/GlobalSearch';
 import { api } from './lib/api';
 import { useApp } from './state/AppProvider';
 
@@ -50,6 +51,19 @@ export default function App() {
   const [showNotificationDropdown, setShowNotificationDropdown] = useState<boolean>(false);
   const [showAccountMenu, setShowAccountMenu] = useState<boolean>(false);
   const [walletCopied, setWalletCopied] = useState<boolean>(false);
+  const [showSearch, setShowSearch] = useState<boolean>(false);
+
+  // Atajo Ctrl/Cmd+K para abrir la búsqueda global.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowSearch((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [attendanceFilter, setAttendanceFilter] = useState<string>('All');
@@ -260,6 +274,16 @@ export default function App() {
 
           {/* Right actions: Notifications dropdown & Privy Onboard Trigger */}
           <div className="flex items-center gap-3">
+
+            {/* Global search trigger */}
+            <button
+              onClick={() => setShowSearch(true)}
+              className="w-9 h-9 bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              aria-label="Buscar"
+              title="Buscar (Ctrl/⌘ + K)"
+            >
+              <Search className="w-4 h-4" />
+            </button>
 
             {/* Notification Bell with Badge */}
             <div className="relative">
@@ -660,6 +684,9 @@ export default function App() {
         )}
 
       </main>
+
+      {/* Búsqueda global (Ctrl/Cmd+K) */}
+      {showSearch && <GlobalSearch onClose={() => setShowSearch(false)} />}
 
       {/* Overlay de recompensa XP al completar misiones */}
       <XpBurst />
