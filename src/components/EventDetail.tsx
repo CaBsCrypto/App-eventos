@@ -45,6 +45,14 @@ export default function EventDetail({
   onMintPOAP,
   isOffline
 }: EventDetailProps) {
+  // Skeleton shimmer al abrir la invitación (~620ms, como el prototipo).
+  const [loading, setLoading] = useState<boolean>(true);
+  useEffect(() => {
+    setLoading(true);
+    const t = setTimeout(() => setLoading(false), 620);
+    return () => clearTimeout(t);
+  }, [event.id]);
+
   const [activeFeedbackAct, setActiveFeedbackAct] = useState<string | null>(null);
   const [rating, setRating] = useState<number>(5);
   const [comment, setComment] = useState<string>('');
@@ -250,6 +258,26 @@ export default function EventDetail({
   const isActivityCompleted = (actId: string) => {
     return attendee?.completedActivities?.includes(actId) || false;
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <div className="h-8 w-40 rounded-lg ep-skeleton" />
+        <div className="h-56 w-full rounded-3xl ep-skeleton" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="h-24 w-full rounded-2xl ep-skeleton" />
+            <div className="h-40 w-full rounded-2xl ep-skeleton" />
+            <div className="h-40 w-full rounded-2xl ep-skeleton" />
+          </div>
+          <div className="space-y-4">
+            <div className="h-64 w-full rounded-2xl ep-skeleton" />
+            <div className="h-32 w-full rounded-2xl ep-skeleton" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
