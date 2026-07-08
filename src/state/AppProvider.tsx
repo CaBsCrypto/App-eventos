@@ -183,7 +183,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // ui
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [accent, setAccent] = useState('#6366f1');
+  const [accent, setAccentState] = useState(() => localStorage.getItem('ep_accent') || '#6366f1');
+  const setAccent = useCallback((hex: string) => {
+    setAccentState(hex);
+    localStorage.setItem('ep_accent', hex);
+  }, []);
   const [xpBurst, setXpBurst] = useState<{ id: number; points: number } | null>(null);
 
   const fireXpBurst = useCallback((points: number) => {

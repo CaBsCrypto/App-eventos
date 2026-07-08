@@ -21,7 +21,7 @@ function initials(name: string) {
 }
 
 export default function Settings() {
-  const { profile, updateProfile, saveProfile, toast } = useApp();
+  const { profile, updateProfile, saveProfile, toast, accent, setAccent } = useApp();
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
   const [extraEmails, setExtraEmails] = useState<string[]>([]);
@@ -117,6 +117,34 @@ export default function Settings() {
           <div className="text-[11px]" style={{ color: 'var(--ep-faint)' }}>Generada con Privy al registrarte. Tus POAPs e insignias viven aquí.</div>
         </div>
         <button onClick={save} className="w-full py-3 rounded-[11px] font-bold text-[13px] text-white cursor-pointer transition-all" style={{ background: 'var(--ep-accent-grad)' }}>{saved ? '✓ Guardado' : 'Guardar cambios'}</button>
+      </div>
+
+      {/* Personalización — color de acento */}
+      <h2 className={h2Cls}>Personalización</h2>
+      <p className="text-[12px]" style={{ color: 'var(--ep-faint)' }}>Elige el color de acento de la interfaz. Se aplica al instante.</p>
+      <div className="flex items-center gap-3 mt-3 flex-wrap">
+        {[
+          { hex: '#6366f1', name: 'Índigo' },
+          { hex: '#8b5cf6', name: 'Violeta' },
+          { hex: '#0ea5e9', name: 'Cian' },
+          { hex: '#10b981', name: 'Esmeralda' },
+          { hex: '#f97316', name: 'Naranja' },
+          { hex: '#e84142', name: 'Rojo' },
+        ].map((c) => {
+          const active = accent.toLowerCase() === c.hex.toLowerCase();
+          return (
+            <button
+              key={c.hex}
+              type="button"
+              title={c.name}
+              onClick={() => { setAccent(c.hex); toast('Tema actualizado', `Acento ${c.name} aplicado.`); }}
+              className="w-9 h-9 rounded-full cursor-pointer transition-all hover:scale-110 grid place-items-center"
+              style={{ background: c.hex, boxShadow: active ? `0 0 0 3px var(--ep-bg), 0 0 0 5px ${c.hex}` : 'none' }}
+            >
+              {active && <span className="text-white text-xs font-black">✓</span>}
+            </button>
+          );
+        })}
       </div>
 
       {/* Correos */}
