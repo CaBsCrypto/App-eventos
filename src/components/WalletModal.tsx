@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Shield, Wallet, Chrome, Twitter, Apple, CheckCircle2, ArrowRight } from 'lucide-react';
 import { Attendee, WalletType } from '../types';
+import { useApp } from '../state/AppProvider';
 
 interface WalletModalProps {
   onOnboardComplete: (attendee: Attendee) => void;
@@ -8,6 +9,7 @@ interface WalletModalProps {
 }
 
 export default function WalletModal({ onOnboardComplete, onClose }: WalletModalProps) {
+  const { signInWithGoogle, googleAuthEnabled } = useApp();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [step, setStep] = useState<'info' | 'auth' | 'connecting' | 'success'>('info');
@@ -143,6 +145,22 @@ export default function WalletModal({ onOnboardComplete, onClose }: WalletModalP
 
           {step === 'info' && (
             <div className="space-y-4">
+              {/* Login real con Google (Supabase Auth) */}
+              {googleAuthEnabled && (
+                <>
+                  <button
+                    onClick={() => signInWithGoogle()}
+                    className="w-full py-3 bg-white hover:bg-zinc-100 text-zinc-800 font-bold text-sm rounded-xl flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow"
+                  >
+                    <Chrome className="w-4 h-4 text-[#4285F4]" /> Continuar con Google
+                  </button>
+                  <div className="relative my-1 text-center">
+                    <span className="absolute inset-x-0 top-1/2 h-px bg-zinc-800"></span>
+                    <span className="relative bg-zinc-950 px-3 text-[10px] uppercase font-bold text-zinc-500 tracking-widest">o con correo</span>
+                  </div>
+                </>
+              )}
+
               <div>
                 <label className="block text-xs font-medium text-zinc-400 mb-2">Ingresar con Correo (Privy Embedded Wallet)</label>
                 <div className="space-y-2">

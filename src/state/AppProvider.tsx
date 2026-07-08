@@ -17,9 +17,11 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { api, ApiError } from '../lib/api';
+import { supabase, isGoogleAuthEnabled } from '../lib/supabaseClient';
 import type {
   Attendee,
   Event,
@@ -66,6 +68,10 @@ interface AppContextValue {
   /** Crea el attendee vía API y finaliza el onboarding (flujo demo/email). */
   onboard: (input: { name: string; email: string; walletAddress: string; walletType: string }) => Promise<Attendee | null>;
   onboardDemo: () => Promise<void>;
+  /** Login real con Google (Supabase Auth OAuth). */
+  signInWithGoogle: () => Promise<void>;
+  /** ¿El login con Google está configurado (VITE_SUPABASE_*)? */
+  googleAuthEnabled: boolean;
   disconnect: () => void;
   setCurrentAttendee: (a: Attendee | null) => void;
 
@@ -348,6 +354,39 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, [onboard]);
 
+  // --- Login con Google (Supabase Auth) ---
+  const signInWithGoogle = useCallback(async () => {
+    if (!supabase) {
+      toast('Google no configurado', 'Falta VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY.');
+      return;
+    }
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) toast('Error con Google', error.message);
+  }, [toast]);
+
+  // Al volver del OAuth de Google, crea/recupera el attendee por email.
+  const googleHandled = useRef(false);
+  useEffect(() => {
+    if (!supabase) return;
+    const handle = async (session: { user?: { email?: string; user_metadata?: Record<string, unknown> } } | null) => {
+      const u = session?.user;
+      if (!u?.email || googleHandled.current) return;
+      if (localStorage.getItem(STORAGE_KEY)) return; // ya hay sesión de app
+      googleHandled.current = true;
+      const meta = u.user_metadata || {};
+      const name = (meta.full_name as string) || (meta.name as string) || u.email.split('@')[0];
+      const wallet = '0x' + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+      const attendee = await onboard({ name, email: u.email, walletAddress: wallet, walletType: 'Google' });
+      if (attendee) setView('app');
+    };
+    supabase.auth.getSession().then(({ data }) => handle(data.session as never));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => handle(session as never));
+    return () => sub.subscription.unsubscribe();
+  }, [onboard]);
+
   const disconnect = useCallback(() => {
     setCurrentAttendee(null);
     localStorage.removeItem(STORAGE_KEY);
@@ -578,6 +617,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       completeOnboard,
       onboard,
       onboardDemo,
+      signInWithGoogle,
+      googleAuthEnabled: isGoogleAuthEnabled(),
       disconnect,
       setCurrentAttendee,
       view,
@@ -616,7 +657,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }),
     [
       events, attendees, notifications, refetch, currentAttendee, completeOnboard, onboard, onboardDemo,
-      disconnect, view, screen, selectedEvent, follows, toggleFollow, isFollowing,
+      signInWithGoogle, disconnect, view, screen, selectedEvent, follows, toggleFollow, isFollowing,
       profile, updateProfile, saveProfile, isOffline, toggleOffline, offlineQueue,
       enqueueOffline, syncQueue, isSyncing, toasts, toast, dismissToast, accent, xpBurst,
       completeActivity, registerEvent, unregisterEvent, registerActivity, deleteActivity,
