@@ -51,6 +51,15 @@ export interface Event {
   ticketPrice?: string;
   timezone?: string;
   shortCode?: string;
+  /** Insignia diseñada por el organizador para este evento (badge designer). */
+  eventBadge?: EventBadge;
+}
+
+/** Insignia creada por el organizador desde el panel Crear. */
+export interface EventBadge {
+  emoji: string;
+  name: string;
+  requirement: string;
 }
 
 export interface DynamicMetadata {

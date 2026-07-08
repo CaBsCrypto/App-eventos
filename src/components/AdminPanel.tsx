@@ -122,6 +122,12 @@ export default function AdminPanel({ events, attendees, onAddEvent, onAddNotific
     { name: 'Conferencia (Futurista)', url: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80' },
   ];
 
+  // Badge designer (insignia del evento creada por el organizador)
+  const BADGE_EMOJIS = ['🏅', '🎖️', '🏆', '⭐', '🚀', '💎', '🔥', '🧠', '⚡', '🦄'];
+  const [badgeEmoji, setBadgeEmoji] = useState('🏅');
+  const [badgeName, setBadgeName] = useState('');
+  const [badgeReq, setBadgeReq] = useState('');
+
   // Activities Creation States
   const [newActTitle, setNewActTitle] = useState('');
   const [newActPoints, setNewActPoints] = useState(100);
@@ -213,7 +219,10 @@ export default function AdminPanel({ events, attendees, onAddEvent, onAddNotific
           endDate,
           endTime,
           ticketPrice,
-          timezone
+          timezone,
+          eventBadge: badgeName.trim()
+            ? { emoji: badgeEmoji, name: badgeName.trim(), requirement: badgeReq.trim() }
+            : undefined
         })
       });
 
@@ -244,6 +253,9 @@ export default function AdminPanel({ events, attendees, onAddEvent, onAddNotific
         setActivitiesList([
           { id: 'act_1', title: 'Registro y Check-In Principal', description: 'Confirmación presencial y apertura del ticket QR.', points: 100, type: 'CheckIn', required: true }
         ]);
+        setBadgeEmoji('🏅');
+        setBadgeName('');
+        setBadgeReq('');
       }
     } catch (err) {
       console.error(err);
@@ -870,6 +882,67 @@ export default function AdminPanel({ events, attendees, onAddEvent, onAddNotific
                   </button>
                 </div>
 
+              </div>
+            </div>
+
+            {/* Badge Designer — insignia del evento creada por el organizador */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <Award className="w-4 h-4 text-indigo-400" />
+                <span className="text-sm font-extrabold text-zinc-100">Diseña la insignia del evento</span>
+                <span className="text-[10px] text-zinc-500 font-mono ml-auto">Opcional</span>
+              </div>
+              <p className="text-[11px] text-zinc-400 -mt-1">Los asistentes que cumplan el requisito acuñan esta insignia NFT. Aparecerá en Insignias como “creada por el organizador”.</p>
+
+              <div className="flex flex-col md:flex-row gap-4">
+                {/* Controles */}
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider font-bold text-zinc-500">Emoji</label>
+                    <div className="flex flex-wrap gap-1.5 mt-1.5">
+                      {BADGE_EMOJIS.map((em) => (
+                        <button
+                          type="button"
+                          key={em}
+                          onClick={() => setBadgeEmoji(em)}
+                          className={`w-9 h-9 rounded-xl text-lg grid place-items-center transition-all cursor-pointer border ${
+                            badgeEmoji === em ? 'bg-indigo-500/20 border-indigo-500 scale-105' : 'bg-zinc-950 border-zinc-800 hover:border-zinc-700'
+                          }`}
+                        >{em}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider font-bold text-zinc-500">Nombre de la insignia</label>
+                    <input
+                      type="text"
+                      value={badgeName}
+                      onChange={(e) => setBadgeName(e.target.value)}
+                      placeholder="Ej. Pionero Hacker House"
+                      className="w-full mt-1.5 px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-100 focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider font-bold text-zinc-500">Requisito para obtenerla</label>
+                    <input
+                      type="text"
+                      value={badgeReq}
+                      onChange={(e) => setBadgeReq(e.target.value)}
+                      placeholder="Ej. Completar todas las misiones obligatorias"
+                      className="w-full mt-1.5 px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-100 focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Preview en vivo */}
+                <div className="md:w-48 shrink-0 bg-zinc-950 border border-zinc-800 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500/25 via-purple-600/30 to-zinc-900 border-2 border-indigo-500/40 grid place-items-center text-3xl shadow-lg shadow-indigo-500/10">
+                    {badgeEmoji}
+                  </div>
+                  <div className="text-xs font-extrabold text-zinc-200 leading-tight break-words">{badgeName.trim() || 'Nombre de la insignia'}</div>
+                  <div className="text-[10px] text-zinc-500 leading-snug break-words">{badgeReq.trim() || 'Requisito para obtenerla'}</div>
+                  <span className="text-[8px] uppercase tracking-wider font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/30 px-2 py-0.5 rounded-full mt-1">Preview</span>
+                </div>
               </div>
             </div>
 

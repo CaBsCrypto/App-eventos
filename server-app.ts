@@ -128,7 +128,8 @@ app.post('/api/events', async (req, res) => {
     endDate,
     endTime,
     ticketPrice,
-    timezone
+    timezone,
+    eventBadge
   } = req.body;
   
   if (!title || !date || !location || !category) {
@@ -162,7 +163,8 @@ app.post('/api/events', async (req, res) => {
     endTime: endTime || undefined,
     ticketPrice: ticketPrice || 'Gratis',
     timezone: timezone || undefined,
-    shortCode
+    shortCode,
+    eventBadge: eventBadge || undefined
   };
 
   db.events.push(newEvent);

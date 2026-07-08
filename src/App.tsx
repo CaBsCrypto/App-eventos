@@ -595,6 +595,7 @@ export default function App() {
           <BadgeDisplay
             badges={currentAttendee ? currentAttendee.badges : []}
             userName={currentAttendee ? currentAttendee.name : ''}
+            events={events}
           />
         )}
 
