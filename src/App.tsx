@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Compass, Trophy, Award, Bell, Wallet, LogOut,
-  Sparkles, Shield, ArrowUpRight, Plus
+  Sparkles, Shield, ArrowUpRight, Plus, Globe
 } from 'lucide-react';
 import EventCard from './components/EventCard';
 import EventDetail from './components/EventDetail';
@@ -11,6 +11,7 @@ import Leaderboard from './components/Leaderboard';
 import AdminPanel from './components/AdminPanel';
 import OfflineIndicator from './components/OfflineIndicator';
 import Landing from './components/Landing';
+import Discover from './components/Discover';
 import { api } from './lib/api';
 import { useApp } from './state/AppProvider';
 
@@ -105,6 +106,9 @@ export default function App() {
       if (path === '/' || path === '/events') {
         setSelectedEvent(null);
         setActiveView('events');
+      } else if (path === '/discover') {
+        setSelectedEvent(null);
+        setActiveView('discover');
       } else if (path === '/leaderboard') {
         setSelectedEvent(null);
         setActiveView('leaderboard');
@@ -198,6 +202,16 @@ export default function App() {
                 }`}
               >
                 <Compass className="w-3.5 h-3.5" /> Eventos
+              </button>
+              <button
+                onClick={() => { setSelectedEvent(null); setActiveView('discover'); }}
+                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 border ${
+                  activeView === 'discover'
+                    ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 font-bold'
+                    : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <Globe className="w-3.5 h-3.5" /> Descubrir
               </button>
               <button
                 onClick={() => { setActiveView('leaderboard'); }}
@@ -328,6 +342,13 @@ export default function App() {
         >
           <Compass className="w-5 h-5" />
           <span>Eventos</span>
+        </button>
+        <button
+          onClick={() => { setSelectedEvent(null); setActiveView('discover'); }}
+          className={`flex flex-col items-center gap-1.5 transition-all cursor-pointer ${activeView === 'discover' ? 'text-indigo-400 scale-105 font-black' : 'hover:text-zinc-200'}`}
+        >
+          <Globe className="w-5 h-5" />
+          <span>Descubrir</span>
         </button>
         <button
           onClick={() => { setActiveView('leaderboard'); }}
@@ -502,6 +523,9 @@ export default function App() {
             isOffline={isOffline}
           />
         )}
+
+        {/* VIEW: DESCUBRIR */}
+        {activeView === 'discover' && <Discover />}
 
         {/* VIEW 2: LEADERBOARDS & STORE */}
         {activeView === 'leaderboard' && (

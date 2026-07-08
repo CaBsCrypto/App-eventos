@@ -63,6 +63,11 @@ interface AppContextValue {
   selectedEvent: Event | null;
   setSelectedEvent: (e: Event | null) => void;
 
+  // --- descubrir / seguir ---
+  follows: string[];
+  toggleFollow: (organizerId: string, organizerName?: string) => void;
+  isFollowing: (organizerId: string) => boolean;
+
   // --- offline ---
   isOffline: boolean;
   toggleOffline: () => void;
@@ -113,6 +118,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [screen, setScreen] = useState<AppScreen>('events');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
+  // organizadores seguidos (Descubrir). Cliente-side + persistencia local
+  // hasta que el backend exponga POST /organizers/:id/follow.
+  const [follows, setFollows] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('ep_follows') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
   // offline
   const [isOffline, setIsOffline] = useState(false);
   const [offlineQueue, setOfflineQueue] = useState<OfflineAction[]>([]);
@@ -136,6 +151,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const dismissToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
+
+  const toggleFollow = useCallback(
+    (organizerId: string, organizerName?: string) => {
+      setFollows((prev) => {
+        const next = prev.includes(organizerId)
+          ? prev.filter((f) => f !== organizerId)
+          : [...prev, organizerId];
+        localStorage.setItem('ep_follows', JSON.stringify(next));
+        return next;
+      });
+      const name = organizerName ?? organizerId;
+      if (follows.includes(organizerId)) toast('Dejaste de seguir', `Ya no sigues a ${name}.`);
+      else toast('Ahora sigues', `${name} · sus eventos aparecerán en Eventos.`);
+    },
+    [follows, toast],
+  );
+
+  const isFollowing = useCallback((organizerId: string) => follows.includes(organizerId), [follows]);
 
   const persistAttendee = useCallback((a: Attendee) => {
     setCurrentAttendee(a);
@@ -456,6 +489,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setScreen,
       selectedEvent,
       setSelectedEvent,
+      follows,
+      toggleFollow,
+      isFollowing,
       isOffline,
       toggleOffline,
       offlineQueue,
@@ -479,7 +515,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }),
     [
       events, attendees, notifications, refetch, currentAttendee, completeOnboard, onboard, onboardDemo,
-      disconnect, view, screen, selectedEvent, isOffline, toggleOffline, offlineQueue,
+      disconnect, view, screen, selectedEvent, follows, toggleFollow, isFollowing,
+      isOffline, toggleOffline, offlineQueue,
       enqueueOffline, syncQueue, isSyncing, toasts, toast, dismissToast, accent,
       completeActivity, registerEvent, unregisterEvent, registerActivity, deleteActivity,
       mintPoap, trackSponsorClick, clearNotifications, addNotification,
