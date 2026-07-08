@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Badge } from '../types';
 import { Shield, Sparkles, Database, CheckCircle, ExternalLink, RefreshCw } from 'lucide-react';
+import Badge3D from './Badge3D';
 
 interface BadgeDisplayProps {
   badges: Badge[];
@@ -95,12 +96,10 @@ export default function BadgeDisplay({ badges, userName }: BadgeDisplayProps) {
             {/* Content */}
             <div className="p-6 space-y-5">
               
-              {/* Spinning circular artwork */}
+              {/* Medallón 3D girable (Three.js) */}
               <div className="text-center space-y-2">
-                <div className="relative mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500/30 to-purple-600/30 border-2 border-indigo-500/60 flex items-center justify-center text-5xl shadow-xl shadow-indigo-500/10 animate-pulse">
-                  {selectedBadge.image}
-                  <div className="absolute inset-0 rounded-full border border-indigo-400/20 animate-spin" style={{ animationDuration: '8s' }}></div>
-                </div>
+                <Badge3D emoji={selectedBadge.image} accent="#6366f1" height={200} />
+                <div className="text-[10px] text-zinc-500">Arrastra el medallón para girarlo</div>
                 <div className="pt-2">
                   <h4 className="text-lg font-extrabold text-white">{selectedBadge.title}</h4>
                   <p className="text-xs text-zinc-400 px-4">{selectedBadge.description}</p>
