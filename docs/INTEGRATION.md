@@ -46,7 +46,7 @@ delegan en `src/lib/api`. Toda la red vive en una sola capa.
 | 4 | Invitación             | `invite`      | useNav.selectedEvent     | `GET /api/events/by-code/:code`, `register-event` | ✅ (en EventDetail) |
 | 5 | Crear evento           | `create`      | useData / AdminPanel     | `POST /api/events`                         | ✅ (falta badge designer) |
 | 6 | Leaderboard            | `leaderboard` | useData.attendees        | (deriva de attendees) / `GET /leaderboard` | ✅ funciona |
-| 7 | Insignias (3D)         | `badges`      | useAuth.currentAttendee  | `GET /me/badges`, `POST /badges/mint`      | 🟡 falta 3D (badge-3d.js) |
+| 7 | Insignias (3D)         | `badges`      | useAuth.currentAttendee  | `GET /me/badges`, `POST /badges/mint`      | ✅ 3D con three (falta badge designer) |
 | 8 | Perfil / Historial     | `history`     | useApp.profile           | `GET /me`, `PATCH /me`                      | ✅ (perfil demo) |
 | 9 | Ajustes                | `settings`    | useApp.profile/update    | `PATCH /me`                                | ✅ (perfil demo) |
 
