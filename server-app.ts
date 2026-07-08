@@ -351,6 +351,27 @@ app.post('/api/attendees/:id/register-event', async (req, res) => {
   res.json(attendee);
 });
 
+// 4.6b Toggle follow organizer (Descubrir)
+app.post('/api/attendees/:id/toggle-follow', async (req, res) => {
+  db = loadDatabase();
+  const attendee = db.attendees.find(a => a.id === req.params.id);
+  if (!attendee) {
+    res.status(404).json({ error: 'Attendee not found' });
+    return;
+  }
+  const { organizerId } = req.body;
+  if (!organizerId) {
+    res.status(400).json({ error: 'organizerId required' });
+    return;
+  }
+  if (!attendee.follows) attendee.follows = [];
+  const idx = attendee.follows.indexOf(organizerId);
+  if (idx >= 0) attendee.follows.splice(idx, 1);
+  else attendee.follows.push(organizerId);
+  await saveDatabase(db);
+  res.json(attendee);
+});
+
 // 4.7 Unregister attendee from an event
 app.post('/api/attendees/:id/unregister-event', async (req, res) => {
   db = loadDatabase();

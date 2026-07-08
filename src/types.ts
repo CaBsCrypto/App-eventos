@@ -96,6 +96,7 @@ export interface Attendee {
   calendarSynced: boolean;
   registeredEvents?: string[]; // Optional list of event IDs the attendee has registered for
   registeredActivities?: string[]; // Optional list of activity IDs the attendee has registered for
+  follows?: string[]; // Organizadores seguidos (Descubrir)
 }
 
 export interface NotificationItem {

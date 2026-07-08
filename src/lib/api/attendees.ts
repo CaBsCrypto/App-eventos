@@ -33,6 +33,10 @@ export const attendeesApi = {
   registerActivity: (id: string, activityId: string) =>
     http.post<Attendee>(`/api/attendees/${id}/register-activity`, { activityId }),
 
+  /** POST /api/attendees/:id/toggle-follow — persiste seguir organizador. */
+  toggleFollow: (id: string, organizerId: string) =>
+    http.post<Attendee>(`/api/attendees/${id}/toggle-follow`, { organizerId }),
+
   /** POST /api/attendees/:id/activities/complete — completa misión, otorga XP. */
   completeActivity: (id: string, activityId: string, eventId: string) =>
     http.post<Attendee>(`/api/attendees/${id}/activities/complete`, { activityId, eventId }),

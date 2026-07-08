@@ -182,6 +182,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         wallet: currentAttendee.walletAddress || prev.wallet,
         xp: currentAttendee.points ?? prev.xp,
       }));
+      // Adopta los follows persistidos del backend al iniciar sesión.
+      if (currentAttendee.follows) {
+        setFollows(currentAttendee.follows);
+        localStorage.setItem('ep_follows', JSON.stringify(currentAttendee.follows));
+      }
     }
   }, [currentAttendee]);
 
@@ -197,18 +202,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const toggleFollow = useCallback(
     (organizerId: string, organizerName?: string) => {
+      const wasFollowing = follows.includes(organizerId);
+      // Actualización optimista local (también funciona sin sesión).
       setFollows((prev) => {
-        const next = prev.includes(organizerId)
-          ? prev.filter((f) => f !== organizerId)
-          : [...prev, organizerId];
+        const next = wasFollowing ? prev.filter((f) => f !== organizerId) : [...prev, organizerId];
         localStorage.setItem('ep_follows', JSON.stringify(next));
         return next;
       });
       const name = organizerName ?? organizerId;
-      if (follows.includes(organizerId)) toast('Dejaste de seguir', `Ya no sigues a ${name}.`);
+      if (wasFollowing) toast('Dejaste de seguir', `Ya no sigues a ${name}.`);
       else toast('Ahora sigues', `${name} · sus eventos aparecerán en Eventos.`);
+
+      // Persiste en el backend si hay sesión.
+      if (currentAttendee) {
+        api.attendees
+          .toggleFollow(currentAttendee.id, organizerId)
+          .then((updated) => {
+            setCurrentAttendee(updated);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+          })
+          .catch((e) => console.error('Error al seguir organizador:', e));
+      }
     },
-    [follows, toast],
+    [follows, toast, currentAttendee],
   );
 
   const isFollowing = useCallback((organizerId: string) => follows.includes(organizerId), [follows]);
