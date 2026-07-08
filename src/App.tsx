@@ -14,6 +14,7 @@ import Landing from './components/Landing';
 import Discover from './components/Discover';
 import History from './components/History';
 import Settings from './components/Settings';
+import XpBurst from './components/XpBurst';
 import { api } from './lib/api';
 import { useApp } from './state/AppProvider';
 
@@ -658,6 +659,9 @@ export default function App() {
         )}
 
       </main>
+
+      {/* Overlay de recompensa XP al completar misiones */}
+      <XpBurst />
 
       {/* 4. ONBOARDING MODAL OVERLAY */}
       {showWalletModal && (

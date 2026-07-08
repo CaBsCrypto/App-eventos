@@ -100,6 +100,7 @@ interface AppContextValue {
   dismissToast: (id: string) => void;
   accent: string;
   setAccent: (hex: string) => void;
+  xpBurst: { id: number; points: number } | null;
 
   // --- acciones de dominio (mutaciones) ---
   completeActivity: (activityId: string) => Promise<void>;
@@ -160,6 +161,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // ui
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [accent, setAccent] = useState('#6366f1');
+  const [xpBurst, setXpBurst] = useState<{ id: number; points: number } | null>(null);
+
+  const fireXpBurst = useCallback((points: number) => {
+    const id = Date.now();
+    setXpBurst({ id, points });
+    setTimeout(() => setXpBurst((cur) => (cur && cur.id === id ? null : cur)), 1500);
+  }, []);
 
   // Aplica el acento al árbol como variable CSS (--ep-accent).
   useEffect(() => {
@@ -367,19 +375,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           points: currentAttendee.points + 100,
         };
         persistAttendee(optimistic);
+        fireXpBurst(100);
         toast('💾 Guardado localmente', 'Se sincronizará al recuperar la red.');
         return;
       }
       try {
+        const before = currentAttendee.points;
         const updated = await api.attendees.completeActivity(currentAttendee.id, activityId, selectedEvent.id);
         persistAttendee(updated);
+        fireXpBurst(Math.max(0, (updated.points ?? before) - before) || 100);
         toast('🎯 Actividad registrada', '¡Ganaste XP! Tu insignia NFT actualizó su metadata.');
         await refetch();
       } catch (e) {
         console.error('Error al completar actividad:', e);
       }
     },
-    [currentAttendee, selectedEvent, isOffline, enqueueOffline, persistAttendee, toast, refetch],
+    [currentAttendee, selectedEvent, isOffline, enqueueOffline, persistAttendee, toast, refetch, fireXpBurst],
   );
 
   const registerEvent = useCallback(
@@ -540,6 +551,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       dismissToast,
       accent,
       setAccent,
+      xpBurst,
       completeActivity,
       registerEvent,
       unregisterEvent,
@@ -554,7 +566,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       events, attendees, notifications, refetch, currentAttendee, completeOnboard, onboard, onboardDemo,
       disconnect, view, screen, selectedEvent, follows, toggleFollow, isFollowing,
       profile, updateProfile, isOffline, toggleOffline, offlineQueue,
-      enqueueOffline, syncQueue, isSyncing, toasts, toast, dismissToast, accent,
+      enqueueOffline, syncQueue, isSyncing, toasts, toast, dismissToast, accent, xpBurst,
       completeActivity, registerEvent, unregisterEvent, registerActivity, deleteActivity,
       mintPoap, trackSponsorClick, clearNotifications, addNotification,
     ],
