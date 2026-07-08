@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../state/AppProvider';
+import { ACHIEVEMENTS, isUnlocked } from '../data/achievements';
 
 interface HistRow {
   title: string;
@@ -37,8 +38,9 @@ function initials(name: string) {
 }
 
 export default function History() {
-  const { profile, setScreen } = useApp();
+  const { profile, setScreen, currentAttendee } = useApp();
   const [tab, setTab] = useState<'asistidos' | 'creados'>('asistidos');
+  const unlockedCount = ACHIEVEMENTS.filter((a) => isUnlocked(currentAttendee, a)).length;
   const rows = tab === 'asistidos' ? ASISTIDOS : CREADOS;
 
   const stats = [
@@ -75,6 +77,52 @@ export default function History() {
             <div className="text-[10px] uppercase tracking-wider mt-0.5" style={{ color: 'var(--ep-faint)' }}>{s.label}</div>
           </div>
         ))}
+      </div>
+
+      {/* Logros */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-display font-extrabold text-base text-white">Logros</h2>
+          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full" style={{ color: 'var(--ep-accent)', background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.3)' }}>
+            {unlockedCount}/{ACHIEVEMENTS.length}
+          </span>
+        </div>
+        <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+          {ACHIEVEMENTS.map((a) => {
+            const { current, goal } = a.progress(currentAttendee);
+            const unlocked = current >= goal;
+            const pct = Math.min(100, Math.round((current / goal) * 100));
+            return (
+              <div
+                key={a.id}
+                className="p-3.5 rounded-[14px] transition-all"
+                style={{ background: 'var(--ep-card)', border: `1px solid ${unlocked ? 'rgba(99,102,241,0.4)' : 'var(--ep-border)'}`, boxShadow: 'var(--ep-card-shadow)', opacity: unlocked ? 1 : 0.75 }}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="w-10 h-10 rounded-[11px] grid place-items-center text-lg shrink-0"
+                    style={{ background: unlocked ? 'rgba(99,102,241,0.15)' : 'var(--ep-inset)', border: `1px solid ${unlocked ? 'rgba(99,102,241,0.4)' : 'var(--ep-border)'}`, filter: unlocked ? 'none' : 'grayscale(1)' }}
+                  >{a.icon}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[13px] font-bold text-white flex items-center gap-1.5">
+                      {a.title}
+                      {unlocked && <span style={{ color: 'var(--ep-green)' }}>✓</span>}
+                    </div>
+                    <div className="text-[10px] leading-snug" style={{ color: 'var(--ep-faint)' }}>{a.desc}</div>
+                  </div>
+                </div>
+                {!unlocked && (
+                  <div className="mt-2.5">
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--ep-inset)' }}>
+                      <div className="h-full rounded-full transition-all" style={{ width: `${Math.max(4, pct)}%`, background: 'var(--ep-accent)' }} />
+                    </div>
+                    <div className="text-[9px] mt-1 text-right" style={{ color: 'var(--ep-faint)' }}>{Math.min(current, goal)}/{goal}</div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Conecta tus redes */}

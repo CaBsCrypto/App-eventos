@@ -351,6 +351,22 @@ app.post('/api/attendees/:id/register-event', async (req, res) => {
   res.json(attendee);
 });
 
+// 4.5b Leaderboard real — ranking por XP (fuente de verdad del ranking).
+app.get('/api/leaderboard', (_req, res) => {
+  db = loadDatabase();
+  const ranking = [...db.attendees]
+    .sort((a, b) => (b.points || 0) - (a.points || 0))
+    .map((a, i) => ({
+      rank: i + 1,
+      id: a.id,
+      name: a.name,
+      initials: (a.name || '??').trim().split(/\s+/).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase(),
+      points: a.points || 0,
+      badges: (a.badges || []).length,
+    }));
+  res.json(ranking);
+});
+
 // 4.6a Update attendee profile (Ajustes) — PATCH parcial de campos de perfil.
 app.post('/api/attendees/:id/profile', async (req, res) => {
   db = loadDatabase();
