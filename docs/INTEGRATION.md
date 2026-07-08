@@ -63,11 +63,17 @@ Equivalencias de vocabulario prototipo → repo:
 - **User/Profile** se modela sobre `Attendee` + campos extra (city, bio, handles…).
 - **Badge** del handoff = `BadgeMeta` (general | event); el repo usa `Badge` (NFT).
 
-## Endpoints del handoff aún NO implementados en backend
+## Estado backend
 
-Añadir en `server-app.ts` y su módulo en `src/lib/api/`:
-`GET /discover`, `GET /organizers`, `POST /organizers/:id/follow`,
-`GET /leaderboard`, `GET /me`, `PATCH /me`, `GET /me/badges`, `POST /badges/mint`.
+Conectados (persisten en db-store):
+- Follows: `POST /api/attendees/:id/toggle-follow` (Attendee.follows).
+- Perfil: `POST /api/attendees/:id/profile` (name/user/email/city/bio/phone/handles).
+- Insignia del evento: `eventBadge` en `POST /api/events`.
+- Mint POAP: `POST /api/attendees/:id/mint-poap` (ya existía).
+
+Aún mock / client-side (opcionales — datos de presentación):
+- `GET /discover` y catálogo de organizadores (hoy hardcode en `Discover.tsx`).
+- `GET /leaderboard` (hoy se deriva de `attendees` en el cliente).
 
 ## Assets del prototipo (portar, no copiar el runtime)
 
