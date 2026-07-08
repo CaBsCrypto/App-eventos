@@ -12,6 +12,8 @@ import AdminPanel from './components/AdminPanel';
 import OfflineIndicator from './components/OfflineIndicator';
 import Landing from './components/Landing';
 import Discover from './components/Discover';
+import History from './components/History';
+import Settings from './components/Settings';
 import { api } from './lib/api';
 import { useApp } from './state/AppProvider';
 
@@ -34,6 +36,7 @@ export default function App() {
     mintPoap: handleMintPOAP,
     trackSponsorClick: handleSponsorDirectClick,
     view, setView,
+    profile,
     selectedEvent, setSelectedEvent,
     screen: activeView, setScreen: setActiveView,
     isOffline, toggleOffline: handleToggleOffline,
@@ -44,6 +47,8 @@ export default function App() {
   // === Estado local de UI (no pertenece a ningún dominio) ===
   const [showWalletModal, setShowWalletModal] = useState<boolean>(false);
   const [showNotificationDropdown, setShowNotificationDropdown] = useState<boolean>(false);
+  const [showAccountMenu, setShowAccountMenu] = useState<boolean>(false);
+  const [walletCopied, setWalletCopied] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [attendanceFilter, setAttendanceFilter] = useState<string>('All');
@@ -118,6 +123,12 @@ export default function App() {
       } else if (path === '/create') {
         setSelectedEvent(null);
         setActiveView('create');
+      } else if (path === '/history') {
+        setSelectedEvent(null);
+        setActiveView('history');
+      } else if (path === '/settings') {
+        setSelectedEvent(null);
+        setActiveView('settings');
       } else {
         const pathMatch = path.match(/^\/(invite|i)\/([a-zA-Z0-9_-]+)/);
         if (pathMatch) {
@@ -299,26 +310,62 @@ export default function App() {
               )}
             </div>
 
-            {/* Privy Wallet Portal Button */}
+            {/* XP pill + avatar dropdown (cuenta) */}
             {currentAttendee ? (
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <div className="hidden sm:block text-right">
-                  <span className="text-[10px] text-zinc-500 uppercase block font-bold leading-none">Mi Nivel</span>
-                  <span className="text-xs font-black text-indigo-400">{currentAttendee.points} XP</span>
+              <div className="flex items-center gap-2">
+                <div className="hidden sm:flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 px-2.5 py-1.5 rounded-full">
+                  <span className="text-[10px] text-zinc-500 uppercase font-bold">XP</span>
+                  <span className="text-xs font-black text-amber-400">{profile.xp || currentAttendee.points}</span>
                 </div>
 
-                <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 p-1.5 rounded-xl text-xs font-semibold max-w-[125px] sm:max-w-none">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                  <span className="font-mono text-zinc-300 truncate">
-                    {currentAttendee.walletAddress.substring(0, 4)}...{currentAttendee.walletAddress.substring(currentAttendee.walletAddress.length - 4)}
-                  </span>
+                <div className="relative">
                   <button
-                    onClick={handleDisconnect}
-                    className="p-1 hover:bg-zinc-800 text-zinc-500 hover:text-rose-400 rounded transition-colors cursor-pointer shrink-0"
-                    title="Desconectar Privy"
+                    onClick={() => setShowAccountMenu((v) => !v)}
+                    title="Mi cuenta"
+                    className="w-9 h-9 rounded-full grid place-items-center text-xs font-extrabold text-white cursor-pointer transition-all hover:ring-2 hover:ring-indigo-500/40"
+                    style={{ background: 'linear-gradient(135deg,#10b981,#6366f1)' }}
                   >
-                    <LogOut className="w-3.5 h-3.5" />
+                    {(profile.name || 'CR').trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()}
                   </button>
+
+                  {showAccountMenu && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowAccountMenu(false)} />
+                      <div className="absolute right-0 mt-2 w-64 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl z-50 overflow-hidden animate-scale-up" style={{ transformOrigin: 'top right' }}>
+                        <div className="flex items-center gap-2.5 p-3.5 border-b border-zinc-850">
+                          <div className="w-9 h-9 rounded-full grid place-items-center text-[11px] font-extrabold text-white shrink-0" style={{ background: 'linear-gradient(135deg,#10b981,#6366f1)' }}>
+                            {(profile.name || 'CR').trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-[13px] font-bold text-zinc-100 truncate">{profile.name}</div>
+                            <div className="text-[11px] font-mono text-zinc-500 truncate">⛓ {currentAttendee.walletAddress.slice(0, 6)}…{currentAttendee.walletAddress.slice(-4)}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 px-3.5 py-2 border-b border-zinc-850 text-[11px]">
+                          <span className="text-zinc-500">XP total</span>
+                          <span className="font-black text-amber-400">{profile.xp || currentAttendee.points}</span>
+                          <span className="w-1 h-1 rounded-full bg-zinc-700 mx-1" />
+                          <span className="text-zinc-500">Insignias</span>
+                          <span className="font-black text-indigo-400">{currentAttendee.badges.length}</span>
+                        </div>
+                        {[
+                          { label: '🗂 Historial · asistidos y creados', act: () => { setActiveView('history'); } },
+                          { label: '🏅 Mis insignias', act: () => { setActiveView('badges'); } },
+                          { label: '⚙ Ajustes de perfil', act: () => { setActiveView('settings'); } },
+                          { label: walletCopied ? '✓ Wallet copiada' : '📋 Copiar wallet', act: () => { navigator.clipboard?.writeText(currentAttendee.walletAddress).catch(() => {}); setWalletCopied(true); setTimeout(() => setWalletCopied(false), 1500); } },
+                        ].map((item) => (
+                          <button key={item.label} onClick={() => { item.act(); setShowAccountMenu(false); }} className="w-full text-left px-3.5 py-2.5 text-[12.5px] text-zinc-300 hover:bg-indigo-500/10 hover:text-white transition-colors cursor-pointer">
+                            {item.label}
+                          </button>
+                        ))}
+                        <div className="border-t border-zinc-850">
+                          <button onClick={() => { handleDisconnect(); setShowAccountMenu(false); }} className="w-full text-left px-3.5 py-2.5 text-[12.5px] text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer flex items-center gap-2">
+                            <LogOut className="w-3.5 h-3.5" /> Cerrar sesión
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             ) : (
@@ -535,6 +582,12 @@ export default function App() {
             onAddNotification={handleAddNotification}
           />
         )}
+
+        {/* VIEW: PERFIL / HISTORIAL */}
+        {activeView === 'history' && <History />}
+
+        {/* VIEW: AJUSTES */}
+        {activeView === 'settings' && <Settings />}
 
         {/* VIEW 3: INSIGNIAS WALLET METADATA */}
         {activeView === 'badges' && (

@@ -28,7 +28,21 @@ import type {
   Sponsor,
   AppView,
   AppScreen,
+  Profile,
 } from '../types';
+
+/** Perfil por defecto (demo) hasta que el backend exponga GET /me. */
+const DEFAULT_PROFILE: Profile = {
+  name: 'Camila Reyes',
+  user: '@camireyes',
+  email: 'camila@ejemplo.cl',
+  city: 'Santiago, Chile',
+  bio: 'Frontend dev construyendo en Web3. Fan de los hackathons y el café de especialidad.',
+  wallet: '0x7f3a9c41b2d8e6f0a3c5d7e9b1f4a6c8d0e2f4c29b',
+  phone: '',
+  handles: { github: 'camilareyes', linkedin: '', x: '', instagram: '' },
+  xp: 0,
+};
 
 const STORAGE_KEY = 'tech_badge_attendee';
 
@@ -67,6 +81,10 @@ interface AppContextValue {
   follows: string[];
   toggleFollow: (organizerId: string, organizerName?: string) => void;
   isFollowing: (organizerId: string) => boolean;
+
+  // --- perfil (Historial / Ajustes) ---
+  profile: Profile;
+  updateProfile: (partial: Partial<Profile>) => void;
 
   // --- offline ---
   isOffline: boolean;
@@ -133,6 +151,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [offlineQueue, setOfflineQueue] = useState<OfflineAction[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
 
+  // perfil
+  const [profile, setProfile] = useState<Profile>(DEFAULT_PROFILE);
+  const updateProfile = useCallback((partial: Partial<Profile>) => {
+    setProfile((prev) => ({ ...prev, ...partial }));
+  }, []);
+
   // ui
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [accent, setAccent] = useState('#6366f1');
@@ -141,6 +165,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     document.documentElement.style.setProperty('--ep-accent', accent);
   }, [accent]);
+
+  // Sincroniza los datos dinámicos del perfil con la sesión activa (wallet/XP).
+  useEffect(() => {
+    if (currentAttendee) {
+      setProfile((prev) => ({
+        ...prev,
+        wallet: currentAttendee.walletAddress || prev.wallet,
+        xp: currentAttendee.points ?? prev.xp,
+      }));
+    }
+  }, [currentAttendee]);
 
   const toast = useCallback((title: string, message: string) => {
     const id = `toast_${Date.now()}_${Math.random()}`;
@@ -492,6 +527,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       follows,
       toggleFollow,
       isFollowing,
+      profile,
+      updateProfile,
       isOffline,
       toggleOffline,
       offlineQueue,
@@ -516,7 +553,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [
       events, attendees, notifications, refetch, currentAttendee, completeOnboard, onboard, onboardDemo,
       disconnect, view, screen, selectedEvent, follows, toggleFollow, isFollowing,
-      isOffline, toggleOffline, offlineQueue,
+      profile, updateProfile, isOffline, toggleOffline, offlineQueue,
       enqueueOffline, syncQueue, isSyncing, toasts, toast, dismissToast, accent,
       completeActivity, registerEvent, unregisterEvent, registerActivity, deleteActivity,
       mintPoap, trackSponsorClick, clearNotifications, addNotification,
