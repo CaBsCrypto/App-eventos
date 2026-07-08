@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Event, Activity, Attendee, Feedback } from '../types';
 import { mintPOAPForEvent } from '../services/blockchain/index.js';
+import QRCode from 'qrcode';
 
 interface EventDetailProps {
   event: Event;
@@ -64,6 +65,32 @@ export default function EventDetail({
 
   // Invite link & Minting states
   const [copied, setCopied] = useState<boolean>(false);
+  const [showQR, setShowQR] = useState<boolean>(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+
+  const inviteUrl = `${window.location.origin}/invite/${event.shortCode || event.id}`;
+
+  // Genera el QR de la invitación al abrir el modal.
+  useEffect(() => {
+    if (!showQR) return;
+    QRCode.toDataURL(inviteUrl, { margin: 1, width: 320, color: { dark: '#0f0f20', light: '#ffffff' } })
+      .then(setQrDataUrl)
+      .catch((e) => console.error('Error generando QR:', e));
+  }, [showQR, inviteUrl]);
+
+  // Compartir nativo (Web Share API) con fallback a copiar.
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: event.title, text: `Te invito a ${event.title}`, url: inviteUrl });
+      } catch { /* usuario canceló */ }
+    } else {
+      navigator.clipboard.writeText(inviteUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+      onAddNotification('🔗 Enlace copiado', 'Tu navegador no soporta compartir nativo; copiamos el enlace.');
+    }
+  };
   const [mintingStatus, setMintingStatus] = useState<'idle' | 'gas_estimation' | 'sending_tx' | 'confirming_block' | 'success' | 'failed'>('idle');
   const [mintingError, setMintingError] = useState<string>('');
 
@@ -749,16 +776,66 @@ export default function EventDetail({
             
             <div className="flex gap-2">
               <div className="flex-1 bg-zinc-950 px-3 py-2 border border-zinc-850 rounded-xl text-zinc-300 font-mono text-[10px] truncate flex items-center">
-                {`${window.location.origin}/invite/${event.shortCode || event.id}`}
+                {inviteUrl}
               </div>
               <button
                 onClick={handleCopyInviteUrl}
                 className="px-3.5 py-2 bg-indigo-650 hover:bg-indigo-600 rounded-xl text-white font-bold text-xs transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                title="Copiar enlace"
               >
                 {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-indigo-400" />}
               </button>
             </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowQR(true)}
+                className="flex-1 px-3 py-2 bg-zinc-950 hover:bg-zinc-850 border border-zinc-800 rounded-xl text-zinc-300 hover:text-white font-bold text-[11px] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Eye className="w-3.5 h-3.5" /> Ver QR
+              </button>
+              <button
+                onClick={handleNativeShare}
+                className="flex-1 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white font-bold text-[11px] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Share2 className="w-3.5 h-3.5" /> Compartir
+              </button>
+            </div>
           </div>
+
+          {/* Modal QR de invitación */}
+          {showQR && (
+            <div
+              className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+              onClick={(e) => { if (e.target === e.currentTarget) setShowQR(false); }}
+            >
+              <div className="w-full max-w-xs bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
+                <div className="px-5 py-4 border-b border-zinc-850 flex justify-between items-center">
+                  <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-1.5">
+                    <Share2 className="w-4 h-4 text-indigo-400" /> Invitación
+                  </h3>
+                  <button onClick={() => setShowQR(false)} className="text-zinc-500 hover:text-white bg-zinc-950 hover:bg-zinc-800 rounded-full w-7 h-7 flex items-center justify-center transition-all cursor-pointer">✕</button>
+                </div>
+                <div className="p-6 flex flex-col items-center gap-4">
+                  {qrDataUrl ? (
+                    <img src={qrDataUrl} alt="QR de invitación" className="w-52 h-52 rounded-xl bg-white p-2" />
+                  ) : (
+                    <div className="w-52 h-52 rounded-xl ep-skeleton" />
+                  )}
+                  <div className="text-center">
+                    <div className="text-sm font-extrabold text-white">{event.title}</div>
+                    <div className="text-[10px] text-zinc-500 font-mono mt-1 break-all">{inviteUrl}</div>
+                  </div>
+                  <button
+                    onClick={handleNativeShare}
+                    className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Share2 className="w-3.5 h-3.5" /> Compartir invitación
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Card 4: Proof of Attendance (POAP) Card */}
           {attendee && attendee.registeredEvents?.includes(event.id) && (() => {
