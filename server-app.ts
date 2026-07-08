@@ -9,6 +9,7 @@ const KV_URL = 'https://kvdb.io/A2W99yvj2J8JgG81X68p8a/db-store-joaquin';
 // Types for DB
 import { Event, Attendee, Sponsor, Feedback, NotificationItem } from './src/types.js';
 import { INITIAL_EVENTS, SAMPLE_LEADERBOARD_ATTENDEES, INITIAL_SPONSORS, INITIAL_BADGES } from './src/data.js';
+import { isSupabaseEnabled, loadFromSupabase, saveToSupabase } from './server-supabase.js';
 
 interface DatabaseSchema {
   events: Event[];
@@ -23,8 +24,24 @@ function loadDatabase(): DatabaseSchema {
   return db;
 }
 
-// Asynchronous fetch from KV store to sync memory cache
+// Asynchronous fetch from durable store (Supabase si está configurado; si no, KV)
 async function syncDatabaseFromKV() {
+  // Preferir Supabase cuando hay credenciales.
+  if (isSupabaseEnabled()) {
+    try {
+      const data = await loadFromSupabase<DatabaseSchema>();
+      if (data && data.events && data.attendees) {
+        db = data;
+        return;
+      }
+      // Supabase vacío → sembrar con el estado actual (primer arranque).
+      await saveToSupabase(db);
+      return;
+    } catch (e) {
+      console.error('Error loading db from Supabase', e);
+    }
+  }
+
   try {
     const res = await fetch(KV_URL);
     if (res.ok) {
@@ -50,10 +67,17 @@ async function syncDatabaseFromKV() {
 }
 
 async function saveDatabase(data: DatabaseSchema) {
+  db = data; // Keep memory cache updated
+
+  // Persistencia durable: Supabase si está configurado.
+  if (isSupabaseEnabled()) {
+    await saveToSupabase(data);
+    return;
+  }
+
   try {
-    db = data; // Keep memory cache updated
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
-    
+
     // Await KV store sync to guarantee Vercel container keeps alive until stored
     const res = await fetch(KV_URL, {
       method: 'POST',
