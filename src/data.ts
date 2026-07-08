@@ -1,4 +1,4 @@
-import { Event, Attendee, Badge, Sponsor } from './types';
+import { Event, Attendee, Badge, Sponsor } from './types.js';
 
 export const INITIAL_SPONSORS: Sponsor[] = [
   {
@@ -51,6 +51,7 @@ export const INITIAL_SPONSORS: Sponsor[] = [
 export const INITIAL_EVENTS: Event[] = [
   {
     id: 'evt1',
+    shortCode: 'house',
     title: 'Hacker House LatAm 2026',
     description: 'A 3-day co-living hackathon for developers building the future of decentralized tech. Connect with global sponsors, build prototypes, and pitch to leading VCs.',
     date: '2026-07-15',
@@ -116,6 +117,7 @@ export const INITIAL_EVENTS: Event[] = [
   },
   {
     id: 'evt2',
+    shortCode: 'auth',
     title: 'Zero-Friction Web3 Auth Workshop',
     description: 'An interactive hands-on workshop focused on seedless onboarding, smart accounts, and embedded wallets using Privy.',
     date: '2026-07-22',
@@ -156,6 +158,7 @@ export const INITIAL_EVENTS: Event[] = [
   },
   {
     id: 'evt3',
+    shortCode: 'founder',
     title: 'AI & Web3 Founder Meetup',
     description: 'A high-level networking event for startup founders, investors, and engineers working at the intersection of AI models and decentralized protocols.',
     date: '2026-08-05',

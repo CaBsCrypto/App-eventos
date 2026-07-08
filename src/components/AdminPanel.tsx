@@ -72,7 +72,7 @@ export default function AdminPanel({ events, attendees, onAddEvent, onAddNotific
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState<EventCategory>('Hacker House');
   const [expectedAttendance, setExpectedAttendance] = useState<number>(100);
-  const [image, setImage] = useState('');
+  const [image, setImage] = useState('https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80');
   const [isCreating, setIsCreating] = useState(false);
   const [requiresApproval, setRequiresApproval] = useState(false);
   const [ticketPrice, setTicketPrice] = useState('Gratis');
@@ -230,11 +230,17 @@ export default function AdminPanel({ events, attendees, onAddEvent, onAddNotific
         setIsManaging(true);
         setManageTab('resumen');
 
+        // Scroll page to top immediately
+        setTimeout(() => {
+          const scrollContainer = document.getElementById('main-scroll-container') || window;
+          scrollContainer.scrollTo({ top: 0, behavior: 'auto' });
+        }, 50);
+
         // Reset form variables
         setTitle('');
         setDescription('');
         setLocation('');
-        setImage('');
+        setImage('https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80');
         setActivitiesList([
           { id: 'act_1', title: 'Registro y Check-In Principal', description: 'Confirmación presencial y apertura del ticket QR.', points: 100, type: 'CheckIn', required: true }
         ]);
@@ -341,7 +347,7 @@ export default function AdminPanel({ events, attendees, onAddEvent, onAddNotific
   const [copied, setCopied] = useState(false);
   const handleCopyLink = () => {
     if (!currentEvent) return;
-    const link = `${window.location.origin}?event=${currentEvent.id}`;
+    const link = `${window.location.origin}/invite/${currentEvent.shortCode || currentEvent.id}`;
     navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -1322,14 +1328,15 @@ export default function AdminPanel({ events, attendees, onAddEvent, onAddNotific
                     <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 space-y-4 flex flex-col justify-between">
                       <div className="space-y-4">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 block">Enlace de Invitación</span>
-                        <div className="bg-zinc-950 border border-zinc-850 rounded-2xl overflow-hidden shadow-md">
-                          <img src={currentEvent.image} alt={currentEvent.title} className="w-full h-28 object-cover opacity-60" />
-                          <div className="p-3.5 space-y-2">
-                            <span className="text-[9px] font-extrabold uppercase bg-indigo-500/15 text-indigo-300 border border-indigo-500/20 px-2 py-0.5 rounded-full">
-                              {currentEvent.category}
-                            </span>
-                            <h4 className="text-xs font-extrabold text-white leading-snug truncate">{currentEvent.title}</h4>
-                            <p className="text-[10px] text-zinc-400 flex items-center gap-1.5">
+                        <div className="bg-zinc-950 border border-[#1e2030] rounded-2xl overflow-hidden shadow-md relative h-36 border border-zinc-850">
+                          {/* Background Image */}
+                          <img src={currentEvent.image} alt={currentEvent.title} className="w-full h-full object-cover" />
+                          {/* Dark Gradient Overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/30 to-transparent z-10" />
+                          {/* Details on top of image, matching public details page! */}
+                          <div className="absolute bottom-0 inset-x-0 p-3.5 z-20 space-y-1 text-left">
+                            <h4 className="text-xs font-extrabold text-white leading-snug truncate drop-shadow-md">{currentEvent.title}</h4>
+                            <p className="text-[10px] text-zinc-300 flex items-center gap-1.5 drop-shadow-sm">
                               <MapPin className="w-3.5 h-3.5 text-indigo-400 shrink-0" /> <span className="truncate">{currentEvent.location}</span>
                             </p>
                           </div>

@@ -50,6 +50,7 @@ export interface Event {
   endTime?: string;
   ticketPrice?: string;
   timezone?: string;
+  shortCode?: string;
 }
 
 export interface DynamicMetadata {
@@ -57,6 +58,9 @@ export interface DynamicMetadata {
   activitiesCompleted: number;
   completionTime: string;
   txHash: string;
+  chain?: string;
+  contractAddress?: string;
+  blockNumber?: number;
 }
 
 export interface Badge {

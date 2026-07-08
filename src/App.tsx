@@ -88,18 +88,123 @@ export default function App() {
 
   // Handle URL invitation links on mount
   useEffect(() => {
-    if (events.length > 0) {
+    const checkInvites = async () => {
       const params = new URLSearchParams(window.location.search);
+      
+      // 1. Try search parameters (?event=id)
       const eventId = params.get('event');
       if (eventId) {
-        const matched = events.find(e => e.id === eventId);
-        if (matched) {
-          setSelectedEvent(matched);
-          setActiveView('events');
+        try {
+          const res = await fetch(`/api/events/by-code/${eventId}`);
+          if (res.ok) {
+            const matched = await res.json();
+            setSelectedEvent(matched);
+            setActiveView('events');
+            return;
+          }
+        } catch (err) {
+          console.error('Error fetching event by id:', err);
         }
       }
+
+      // 2. Try invite code search parameters (?invite=code or ?i=code)
+      const inviteCode = params.get('invite') || params.get('i');
+      if (inviteCode) {
+        try {
+          const res = await fetch(`/api/events/by-code/${inviteCode}`);
+          if (res.ok) {
+            const matched = await res.json();
+            setSelectedEvent(matched);
+            setActiveView('events');
+            return;
+          }
+        } catch (err) {
+          console.error('Error fetching event by invite code:', err);
+        }
+      }
+
+      // 3. Try path-based invites (/invite/:code or /i/:code)
+      const path = window.location.pathname;
+      const pathMatch = path.match(/^\/(invite|i)\/([a-zA-Z0-9_-]+)/);
+      if (pathMatch) {
+        const code = pathMatch[2];
+        try {
+          const res = await fetch(`/api/events/by-code/${code}`);
+          if (res.ok) {
+            const matched = await res.json();
+            setSelectedEvent(matched);
+            setActiveView('events');
+          }
+        } catch (err) {
+          console.error('Error fetching event by path invite code:', err);
+        }
+      }
+    };
+
+    checkInvites();
+  }, []);
+
+  // Synchronize browser URL with app state (Luma-like URL routing)
+  useEffect(() => {
+    if (activeView === 'events') {
+      if (selectedEvent) {
+        const path = `/invite/${selectedEvent.shortCode || selectedEvent.id}`;
+        if (window.location.pathname !== path) {
+          window.history.pushState(null, '', path);
+        }
+      } else {
+        if (window.location.pathname !== '/' && !window.location.pathname.startsWith('/invite') && !window.location.pathname.startsWith('/i/')) {
+          window.history.pushState(null, '', '/');
+        }
+      }
+    } else {
+      const path = `/${activeView}`;
+      if (window.location.pathname !== path) {
+        window.history.pushState(null, '', path);
+      }
     }
-  }, [events]);
+  }, [activeView, selectedEvent]);
+
+  // Handle browser back/forward buttons (POPState)
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path === '/' || path === '/events') {
+        setSelectedEvent(null);
+        setActiveView('events');
+      } else if (path === '/leaderboard') {
+        setSelectedEvent(null);
+        setActiveView('leaderboard');
+      } else if (path === '/badges') {
+        setSelectedEvent(null);
+        setActiveView('badges');
+      } else if (path === '/admin') {
+        setSelectedEvent(null);
+        setActiveView('admin');
+      } else {
+        const pathMatch = path.match(/^\/(invite|i)\/([a-zA-Z0-9_-]+)/);
+        if (pathMatch) {
+          const code = pathMatch[2];
+          fetch(`/api/events/by-code/${code}`)
+            .then(res => {
+              if (res.ok) return res.json();
+              throw new Error('Not found');
+            })
+            .then(matched => {
+              setSelectedEvent(matched);
+              setActiveView('events');
+            })
+            .catch(() => {
+              setSelectedEvent(null);
+              setActiveView('events');
+            });
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Scroll to top on navigation/view change
   useEffect(() => {
@@ -151,6 +256,33 @@ export default function App() {
     }
     
     fetchData(); // reload lists
+  };
+
+  // Onboard random demo participant (friend simulation)
+  const handleOnboardDemo = async () => {
+    try {
+      const randomId = Math.floor(100 + Math.random() * 900);
+      const name = `Invitado Demo #${randomId}`;
+      const email = `demo_${Date.now()}_${randomId}@latamprotocol.com`;
+      const walletAddress = '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
+      
+      const response = await fetch('/api/attendees/onboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          walletAddress,
+          walletType: 'Privy (Demo)'
+        })
+      });
+      if (response.ok) {
+        const attendee = await response.json();
+        await handleOnboardComplete(attendee);
+      }
+    } catch (err) {
+      console.error('Error in demo onboarding:', err);
+    }
   };
 
   // Sign out / Disconnect Wallet
@@ -319,6 +451,46 @@ export default function App() {
       }
     } catch (err) {
       console.error('Error unregistering from event:', err);
+    }
+  };
+
+  // Save minted POAP Badge details
+  const handleMintPOAP = async (
+    eventId: string,
+    txHash: string,
+    chainName: string,
+    blockNumber: number,
+    contractAddress: string,
+    tokenId: string
+  ) => {
+    if (!currentAttendee) return;
+    try {
+      const response = await fetch(`/api/attendees/${currentAttendee.id}/mint-poap`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId,
+          txHash,
+          chainName,
+          blockNumber,
+          contractAddress,
+          tokenId
+        })
+      });
+
+      if (response.ok) {
+        const updated: Attendee = await response.json();
+        setCurrentAttendee(updated);
+        localStorage.setItem('tech_badge_attendee', JSON.stringify(updated));
+        
+        triggerToast(
+          '🏅 POAP Acuñado',
+          '¡Tu prueba de asistencia se ha registrado con éxito on-chain!'
+        );
+        fetchData();
+      }
+    } catch (err) {
+      console.error('Error recording minted POAP:', err);
     }
   };
 
@@ -820,12 +992,14 @@ export default function App() {
             attendee={currentAttendee}
             onBack={() => setSelectedEvent(null)}
             onRegister={() => setShowWalletModal(true)}
+            onOnboardDemo={handleOnboardDemo}
             onCompleteActivity={handleCompleteActivity}
             onAddNotification={handleAddNotification}
             onRegisterEvent={handleRegisterEvent}
             onUnregisterEvent={handleUnregisterEvent}
             onRegisterActivity={handleRegisterActivity}
             onDeleteActivity={handleDeleteActivity}
+            onMintPOAP={handleMintPOAP}
             isOffline={isOffline}
           />
         )}
@@ -866,12 +1040,40 @@ export default function App() {
                   Cualquier persona de la comunidad puede crear un evento. Al iniciar sesión, se creará tu billetera digital embebida para que firmes los contratos del ledger del evento.
                 </p>
               </div>
-              <button
-                onClick={() => setShowWalletModal(true)}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm rounded-xl transition-all cursor-pointer shadow-lg shadow-indigo-600/10 hover:scale-[1.01] active:scale-95"
-              >
-                Conectar Privy & Entrar
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => setShowWalletModal(true)}
+                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm rounded-xl transition-all cursor-pointer shadow-lg shadow-indigo-600/10 hover:scale-[1.01] active:scale-95"
+                >
+                  Conectar Privy & Entrar
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const walletAddress = '0x742d35Cc6634C0532925a3b844Bc454e4438f44e';
+                      const response = await fetch('/api/attendees/onboard', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          name: 'Joaquín Estéban (Demo)',
+                          email: 'demo@latamprotocol.com',
+                          walletAddress,
+                          walletType: 'Privy'
+                        })
+                      });
+                      if (response.ok) {
+                        const attendee = await response.json();
+                        handleOnboardComplete(attendee);
+                      }
+                    } catch (err) {
+                      console.error(err);
+                    }
+                  }}
+                  className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white font-bold text-xs sm:text-sm rounded-xl transition-all cursor-pointer border border-zinc-750 hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-1.5"
+                >
+                  Probar Demo <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+                </button>
+              </div>
             </div>
           ) : (
             <AdminPanel 

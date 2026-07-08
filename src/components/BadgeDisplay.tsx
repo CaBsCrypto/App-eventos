@@ -153,47 +153,66 @@ export default function BadgeDisplay({ badges, userName }: BadgeDisplayProps) {
               <div className="space-y-2 text-xs">
                 <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Detalles en Cadena (On-Chain)</span>
                 
-                <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-850 space-y-2 font-mono text-[10px] text-zinc-400">
-                  <div className="flex justify-between">
-                    <span className="text-zinc-600">ID del Token:</span>
-                    <span className="text-zinc-300 font-bold">{selectedBadge.nftId || 'No acuñado'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-600">Propietario:</span>
-                    <span className="text-zinc-300 truncate max-w-[180px]" title={userName}>{userName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-600">Estatus:</span>
-                    <span className="text-emerald-500 font-semibold flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" /> Acuñado (Verified)
-                    </span>
-                  </div>
-                  {selectedBadge.dynamicMetadata?.txHash && (
-                    <div className="flex justify-between">
-                      <span className="text-zinc-600">Hash TX:</span>
-                      <span className="text-indigo-400 truncate max-w-[150px]" title={selectedBadge.dynamicMetadata.txHash}>
-                        {selectedBadge.dynamicMetadata.txHash}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-zinc-600">Estándar:</span>
-                    <span className="text-zinc-300">ERC-721 Dynamic NFT</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+                {(() => {
+                  const chainName = selectedBadge.dynamicMetadata?.chain || 'Polygon PoS';
+                  const isStellar = chainName.toLowerCase().includes('stellar');
+                  const isAvax = chainName.toLowerCase().includes('avalanche');
+                  const explorerBase = isStellar 
+                    ? 'https://stellar.expert/explorer/public/tx/' 
+                    : isAvax 
+                      ? 'https://snowtrace.io/tx/' 
+                      : 'https://polygonscan.com/tx/';
+                  
+                  return (
+                    <>
+                      <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-850 space-y-2 font-mono text-[10px] text-zinc-400">
+                        <div className="flex justify-between">
+                          <span className="text-zinc-600">Blockchain:</span>
+                          <span className="text-zinc-200 font-bold">{chainName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-600">ID del Token:</span>
+                          <span className="text-zinc-300 font-bold">{selectedBadge.nftId || 'No acuñado'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-600">Propietario:</span>
+                          <span className="text-zinc-300 truncate max-w-[180px]" title={userName}>{userName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-600">Estatus:</span>
+                          <span className="text-emerald-500 font-semibold flex items-center gap-1">
+                            <CheckCircle className="w-3 h-3" /> Acuñado (Verified)
+                          </span>
+                        </div>
+                        {selectedBadge.dynamicMetadata?.txHash && (
+                          <div className="flex justify-between">
+                            <span className="text-zinc-600">Hash TX:</span>
+                            <span className="text-indigo-400 truncate max-w-[150px]" title={selectedBadge.dynamicMetadata.txHash}>
+                              {selectedBadge.dynamicMetadata.txHash}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                          <span className="text-zinc-600">Estándar:</span>
+                          <span className="text-zinc-300">{isStellar ? 'Stellar Asset' : 'ERC-721 Dynamic NFT'}</span>
+                        </div>
+                      </div>
 
-            {/* Footer with external link explorer link */}
-            <div className="bg-zinc-950 px-6 py-4 border-t border-zinc-850 text-center">
-              <a 
-                href={`https://polygonscan.com/tx/${selectedBadge.dynamicMetadata?.txHash || ''}`}
-                target="_blank" 
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300"
-              >
-                Verificar en Block Explorer <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+                      {/* Footer with external link explorer link */}
+                      <div className="bg-zinc-950 -mx-6 -mb-6 mt-5 px-6 py-4 border-t border-zinc-850 text-center">
+                        <a 
+                          href={`${explorerBase}${selectedBadge.dynamicMetadata?.txHash || ''}`}
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300"
+                        >
+                          Verificar en Block Explorer <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
             </div>
           </div>
         </div>

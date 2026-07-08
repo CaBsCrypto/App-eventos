@@ -25,8 +25,8 @@ export default function WalletModal({ onOnboardComplete, onClose }: WalletModalP
     return addr;
   };
 
-  const handlePrivyLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePrivyLogin = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
     if (!email || !name) {
       setError('Por favor completa todos los campos.');
       return;
@@ -162,11 +162,11 @@ export default function WalletModal({ onOnboardComplete, onClose }: WalletModalP
                   />
                 </div>
                 <button
-                  onClick={() => setStep('auth')}
+                  onClick={() => handlePrivyLogin()}
                   disabled={!name || !email}
                   className="w-full mt-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
-                  Continuar <ArrowRight className="w-4 h-4" />
+                  Continuar e Iniciar <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
 

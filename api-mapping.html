@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapeo de APIs y Funcionalidades - LatAm Protocol</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #ffffff;
+      --text-color: #1f2937;
+      --text-muted: #4b5563;
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --accent: #a855f7;
+      --code-bg: #f3f4f6;
+      --code-color: #111827;
+      --border: #e5e7eb;
+      --badge-get-bg: #d1fae5;
+      --badge-get-text: #065f46;
+      --badge-post-bg: #dbeafe;
+      --badge-post-text: #1e40af;
+      --badge-delete-bg: #fee2e2;
+      --badge-delete-text: #991b1b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-color);
+      background-color: var(--bg-color);
+      line-height: 1.6;
+      padding: 40px 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* Floating Action Bar */
+    .action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #1e1b4b;
+      color: #ffffff;
+      padding: 16px 24px;
+      border-radius: 16px;
+      margin-bottom: 40px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .action-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background-color: #6366f1;
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background-color: #4f46e5;
+    }
+
+    .btn-secondary {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-secondary:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Typography */
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      color: #111827;
+      line-height: 1.2;
+      margin-bottom: 8px;
+      letter-spacing: -0.03em;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 16px;
+    }
+
+    h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: #1f2937;
+      margin-top: 40px;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+      border-left: 4px solid var(--primary);
+      padding-left: 12px;
+    }
+
+    h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #374151;
+      margin-top: 24px;
+      margin-bottom: 12px;
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 32px;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background-color: #f9fafb;
+      font-weight: 700;
+      color: #374151;
+    }
+
+    tr:hover {
+      background-color: #f9fafb;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .badge-get {
+      background-color: var(--badge-get-bg);
+      color: var(--badge-get-text);
+    }
+
+    .badge-post {
+      background-color: var(--badge-post-bg);
+      color: var(--badge-post-text);
+    }
+
+    .badge-delete {
+      background-color: var(--badge-delete-bg);
+      color: var(--badge-delete-text);
+    }
+
+    /* Code Blocks */
+    pre {
+      background-color: var(--code-bg);
+      color: var(--code-color);
+      padding: 20px;
+      border-radius: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      background-color: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #c2410c;
+    }
+
+    /* Print styling rules */
+    @media print {
+      body {
+        padding: 0;
+        max-width: 100%;
+      }
+      .action-bar {
+        display: none;
+      }
+      pre {
+        page-break-inside: avoid;
+        white-space: pre-wrap;
+      }
+      table {
+        page-break-inside: avoid;
+      }
+      tr {
+        page-break-inside: avoid;
+      }
+      h2, h3 {
+        page-break-after: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top bar to Print/Download -->
+  <div class="action-bar">
+    <div class="action-title">📄 Reporte Técnico de APIs y Mapeo</div>
+    <div class="action-buttons">
+      <button class="btn btn-secondary" onclick="window.print()">🖨️ Guardar como PDF / Imprimir</button>
+      <a class="btn btn-primary" href="data:text/html;charset=utf-8,<!DOCTYPE html><html>" download="api-mapping.html" id="download-link">💾 Descargar Archivo HTML</a>
+    </div>
+  </div>
+
+  <h1>Mapeo de Funcionalidades y Guía de Integración</h1>
+  <p class="subtitle">LatAm Protocol — Documentación oficial para el equipo de Diseño y Desarrollo</p>
+
+  <h2>1. Arquitectura y Esquema de Datos (Database Schema)</h2>
+  <p>La base de datos centralizada se almacena en memoria caché de servidor y se sincroniza en la nube. A continuación se presentan las interfaces TypeScript de las entidades principales:</p>
+
+  <pre><code>// 1. Evento
+interface Event {
+  id: string;                  // Prefijo 'evt_' + timestamp
+  shortCode: string;           // Código de invitación corto (ej: 'house')
+  title: string;               // Nombre del evento
+  description: string;         // Descripción detallada
+  date: string;                // Fecha (YYYY-MM-DD)
+  time: string;                // Hora (HH:MM AM/PM)
+  location: string;            // Ubicación física
+  category: string;            // 'Hacker House' | 'Workshop' | 'Meetup'
+  expectedAttendance: number;  // Aforo
+  actualAttendance: number;    // Acreditados reales
+  image: string;               // Portada del evento
+  sponsors: Sponsor[];         // Patrocinadores asociados
+  activities: Activity[];      // Misiones y agenda del evento
+  startDate?: string;
+  startTime?: string;
+  endDate?: string;
+  endTime?: string;
+  ticketPrice?: string;
+  timezone?: string;
+}
+
+// 2. Asistente (Usuario)
+interface Attendee {
+  id: string;                  // Prefijo 'at_' + timestamp
+  name: string;
+  email: string;
+  walletAddress: string;
+  walletType: 'Privy' | 'MetaMask' | 'Phantom' | 'Coinbase';
+  joinedAt: string;
+  points: number;              // XP acumulados
+  completedActivities: string[];
+  badges: UnlockedBadge[];     // Insignias NFT dinámicas
+  checkedIn: boolean;
+  calendarSynced: boolean;
+  registeredEvents: string[];
+  registeredActivities: string[];
+}
+
+// 3. Actividad / Misión
+interface Activity {
+  id: string;
+  title: string;
+  description: string;
+  points: number;              // Puntos de XP
+  type: 'CheckIn' | 'Keynote' | 'Workshop' | 'Hackathon' | 'SponsorVisit' | 'Feedback';
+  required: boolean;
+  sponsorId?: string;
+  feedbacks?: Feedback[];
+}</code></pre>
+
+  <h2>2. Catálogo de APIs (Endpoints)</h2>
+  <p>Todas las rutas son relativas a la URL base de la aplicación y utilizan la cabecera <code>Content-Type: application/json</code>.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 100px;">Método</th>
+        <th>Endpoint</th>
+        <th>Payload / Parámetros</th>
+        <th>Descripción</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-get">GET</span></td>
+        <td><code>/api/events</code></td>
+        <td>Ninguno</td>
+        <td>Obtiene la lista completa de todos los eventos creados en la base de datos.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-post">POST</span></td>
+        <td><code>/api/events</code></td>
+        <td>Campos del evento en JSON</td>
+        <td>Crea un nuevo evento personalizado de alta fidelidad con código de invitación corto.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-get">GET</span></td>
+        <td><code>/api/events/by-code/:code</code></td>
+        <td>Código corto (ej: <code>house</code>)</td>
+        <td>Resuelve y retorna los detalles del evento asociado al código de invitación.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-post">POST</span></td>
+        <td><code>/api/attendees/onboard</code></td>
+        <td><code>name</code>, <code>email</code>, <code>walletAddress</code></td>
+        <td>Crea el perfil del asistente a través de Privy y le otorga su insignia Genesis.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-post">POST</span></td>
+        <td><code>/api/attendees/:id/register-event</code></td>
+        <td><code>eventId</code></td>
+        <td>Registra el RSVP del asistente al evento para permitirle misiones.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-post">POST</span></td>
+        <td><code>/api/attendees/:id/activities/complete</code></td>
+        <td><code>activityId</code>, <code>eventId</code></td>
+        <td>Marca la misión como completada, suma XP y actualiza metadatos de su NFT.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-post">POST</span></td>
+        <td><code>/api/events/:id/activities/:actId/feedback</code></td>
+        <td><code>rating</code>, <code>comment</code>, <code>attendeeName</code></td>
+        <td>Guarda la opinión sobre una actividad y premia al participante con +50 XP.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>3. UX, Flujos Clave y Lineamientos para el Equipo de Diseño</h2>
+  
+  <h3>A. Acreditación Directa y RSVP</h3>
+  <p>Al entrar desde un enlace de invitación tipo Luma (<code>/invite/codigo</code>), la tarjeta principal de RSVP debe ser el foco de atención primario. Si el participante aún no se ha registrado, se despliega el modal de Privy simplificado (ingreso con email directo). Una vez validada su cuenta, el botón se convierte en "Acreditado" y se le asigna su credencial virtual en el acto.</p>
+
+  <h3>B. Misiones IRL (Códigos QR en stands)</h3>
+  <p>Las misiones presenciales se validan mediante la lectura de códigos QR instalados físicamente en el evento. El flujo de UX debe desplegar el modal del escáner con crosshairs de cámara y la simulación del visor. Es indispensable que el modal conserve el diseño de degradados oscuros e incluya un campo alternativo de código manual por si la cámara presenta fallos de hardware.</p>
+
+  <h3>C. Paleta Cromática y Tokens</h3>
+  <p>El color primario para botones e interacción es el Indigo (<code>#4f46e5</code>) y el Violeta (<code>#a855f7</code>). El fondo siempre debe ser un gris oscuro mate o negro absoluto (<code>#09090b</code>). Los bordes deben ser delgados y con baja opacidad (<code>rgba(255, 255, 255, 0.08)</code>) para lograr un estilo traslúcido y moderno de Glassmorphism.</p>
+
+  <script>
+    // Dynamically inject the raw page HTML into the download link
+    document.getElementById('download-link').addEventListener('click', function(e) {
+      const docHtml = document.documentElement.outerHTML;
+      this.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(docHtml);
+    });
+  </script>
+</body>
+</html>
