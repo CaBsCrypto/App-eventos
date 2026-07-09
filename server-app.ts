@@ -1,6 +1,34 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
+
+// Secreto para firmar las credenciales QR (HMAC). En prod configurar
+// CHECKIN_SECRET; el fallback sirve para demo/local.
+const CHECKIN_SECRET = process.env.CHECKIN_SECRET || 'eventprotocol-checkin-demo-secret';
+
+/** Firma una credencial (evento+asistente) → token base64url no falsificable. */
+function signCredential(eventId: string, attendeeId: string): string {
+  const payload = `${eventId}.${attendeeId}`;
+  const sig = crypto.createHmac('sha256', CHECKIN_SECRET).update(payload).digest('hex').slice(0, 24);
+  return Buffer.from(`${payload}.${sig}`).toString('base64url');
+}
+
+/** Verifica un token de credencial. Devuelve {eventId, attendeeId} o null. */
+function verifyCredential(token: string): { eventId: string; attendeeId: string } | null {
+  try {
+    const decoded = Buffer.from(token, 'base64url').toString('utf8');
+    const parts = decoded.split('.');
+    if (parts.length !== 3) return null;
+    const [eventId, attendeeId, sig] = parts;
+    const expected = crypto.createHmac('sha256', CHECKIN_SECRET).update(`${eventId}.${attendeeId}`).digest('hex').slice(0, 24);
+    if (sig.length !== expected.length) return null;
+    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+    return { eventId, attendeeId };
+  } catch {
+    return null;
+  }
+}
 
 // Persistent database path in workspace
 const DB_FILE = path.join(process.cwd(), 'db-store.json');
@@ -373,6 +401,87 @@ app.post('/api/attendees/:id/register-event', async (req, res) => {
   }
 
   res.json(attendee);
+});
+
+// === ACREDITACIÓN POR QR ===
+
+// A) Credencial del asistente para un evento → token firmado (para su QR).
+app.post('/api/events/:eventId/credential', (req, res) => {
+  db = loadDatabase();
+  const { eventId } = req.params;
+  const { attendeeId } = req.body;
+  const attendee = db.attendees.find(a => a.id === attendeeId);
+  if (!attendee) {
+    res.status(404).json({ error: 'Attendee not found' });
+    return;
+  }
+  if (!(attendee.registeredEvents || []).includes(eventId)) {
+    res.status(400).json({ error: 'El asistente no está registrado en este evento' });
+    return;
+  }
+  res.json({ token: signCredential(eventId, attendeeId) });
+});
+
+// B) Check-in / acreditación. Acepta { token } (QR firmado) o { attendeeId } (manual).
+app.post('/api/events/:eventId/checkin', async (req, res) => {
+  db = loadDatabase();
+  const { eventId } = req.params;
+  const { token, attendeeId: manualId } = req.body;
+
+  let attendeeId = manualId as string | undefined;
+  if (token) {
+    const v = verifyCredential(token);
+    if (!v) {
+      res.status(400).json({ error: 'Credencial QR inválida o falsificada' });
+      return;
+    }
+    if (v.eventId !== eventId) {
+      res.status(400).json({ error: 'La credencial es de otro evento' });
+      return;
+    }
+    attendeeId = v.attendeeId;
+  }
+  if (!attendeeId) {
+    res.status(400).json({ error: 'Falta token o attendeeId' });
+    return;
+  }
+
+  const attendee = db.attendees.find(a => a.id === attendeeId);
+  const event = db.events.find(e => e.id === eventId);
+  if (!attendee || !event) {
+    res.status(404).json({ error: 'Asistente o evento no encontrado' });
+    return;
+  }
+  if (!(attendee.registeredEvents || []).includes(eventId)) {
+    res.status(400).json({ error: 'El asistente no está registrado en este evento' });
+    return;
+  }
+
+  if (!attendee.checkins) attendee.checkins = [];
+  const existing = attendee.checkins.find(c => c.eventId === eventId);
+  if (existing) {
+    res.json({ attendee: { id: attendee.id, name: attendee.name, email: attendee.email }, at: existing.at, already: true });
+    return;
+  }
+
+  const at = new Date().toISOString();
+  attendee.checkins.push({ eventId, at });
+  await saveDatabase(db);
+  res.json({ attendee: { id: attendee.id, name: attendee.name, email: attendee.email }, at, already: false });
+});
+
+// C) Lista de acreditados de un evento (para el panel del organizador).
+app.get('/api/events/:eventId/accredited', (req, res) => {
+  db = loadDatabase();
+  const { eventId } = req.params;
+  const rows = db.attendees
+    .map(a => {
+      const c = (a.checkins || []).find(x => x.eventId === eventId);
+      return c ? { attendeeId: a.id, name: a.name, email: a.email, at: c.at } : null;
+    })
+    .filter(Boolean)
+    .sort((x: any, y: any) => (x.at < y.at ? 1 : -1));
+  res.json(rows);
 });
 
 // 4.5b Leaderboard real — ranking por XP (fuente de verdad del ranking).

@@ -7,6 +7,8 @@ import {
 import { Event, Activity, Attendee, Feedback } from '../types';
 import { mintPOAPForEvent } from '../services/blockchain/index.js';
 import QRCode from 'qrcode';
+import { api } from '../lib/api';
+import Accreditation from './Accreditation';
 
 interface EventDetailProps {
   event: Event;
@@ -67,8 +69,22 @@ export default function EventDetail({
   const [copied, setCopied] = useState<boolean>(false);
   const [showQR, setShowQR] = useState<boolean>(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [showAccreditation, setShowAccreditation] = useState<boolean>(false);
+  const [credentialQr, setCredentialQr] = useState<string>('');
 
   const inviteUrl = `${window.location.origin}/invite/${event.shortCode || event.id}`;
+
+  // Credencial QR del asistente (token firmado) cuando está registrado al evento.
+  const isRegisteredToEvent = !!attendee && (attendee.registeredEvents || []).includes(event.id);
+  useEffect(() => {
+    if (!attendee || !isRegisteredToEvent) { setCredentialQr(''); return; }
+    let active = true;
+    api.events.credential(event.id, attendee.id)
+      .then(({ token }) => QRCode.toDataURL(token, { margin: 1, width: 320, color: { dark: '#0f0f20', light: '#ffffff' } }))
+      .then((url) => { if (active) setCredentialQr(url); })
+      .catch((e) => console.error('Error credencial QR:', e));
+    return () => { active = false; };
+  }, [attendee, event.id, isRegisteredToEvent]);
 
   // Genera el QR de la invitación al abrir el modal.
   useEffect(() => {
@@ -837,6 +853,35 @@ export default function EventDetail({
             </div>
           )}
 
+          {/* Credencial de ingreso del asistente (QR firmado para acreditación) */}
+          {isRegisteredToEvent && (
+            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 space-y-3 shadow-lg text-center">
+              <div className="text-left">
+                <h3 className="font-extrabold text-white text-sm flex items-center gap-1.5">
+                  <CheckCircle className="w-4 h-4 text-emerald-400" /> Tu credencial de ingreso
+                </h3>
+                <p className="text-[10px] text-zinc-500 mt-0.5">Mostrá este QR en la entrada para acreditarte.</p>
+              </div>
+              {credentialQr ? (
+                <img src={credentialQr} alt="Credencial QR" className="w-44 h-44 mx-auto rounded-xl bg-white p-2" />
+              ) : (
+                <div className="w-44 h-44 mx-auto rounded-xl ep-skeleton" />
+              )}
+              <p className="font-mono text-[10px] text-zinc-500">{attendee?.name}</p>
+            </div>
+          )}
+
+          {/* Acreditación (organizador): abrir escáner de ingresos */}
+          <button
+            onClick={() => setShowAccreditation(true)}
+            className="w-full bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 hover:border-indigo-500/40 rounded-3xl p-5 shadow-lg text-left transition-all cursor-pointer group"
+          >
+            <h3 className="font-extrabold text-white text-sm flex items-center gap-1.5">
+              <Eye className="w-4 h-4 text-indigo-400" /> Acreditar asistentes
+            </h3>
+            <p className="text-[10px] text-zinc-500 mt-0.5 group-hover:text-zinc-400">Panel del organizador: escaneá el QR de cada asistente (o buscalo por nombre/email) para validar su ingreso.</p>
+          </button>
+
           {/* Card 4: Proof of Attendance (POAP) Card */}
           {attendee && attendee.registeredEvents?.includes(event.id) && (() => {
             const badgeId = `poap_${event.id}`;
@@ -1132,6 +1177,11 @@ export default function EventDetail({
           </div>
         );
       })()}
+
+      {/* Panel de acreditación (organizador) */}
+      {showAccreditation && (
+        <Accreditation eventId={event.id} eventTitle={event.title} onClose={() => setShowAccreditation(false)} />
+      )}
 
     </div>
   );
