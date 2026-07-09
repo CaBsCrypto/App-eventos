@@ -10,8 +10,8 @@ import { useApp } from './AppProvider';
 
 /** Sesión / wallet embebida. */
 export function useAuth() {
-  const { currentAttendee, completeOnboard, onboard, onboardDemo, disconnect, setCurrentAttendee } = useApp();
-  return { currentAttendee, completeOnboard, onboard, onboardDemo, disconnect, setCurrentAttendee };
+  const { currentAttendee, completeOnboard, onboard, disconnect, setCurrentAttendee } = useApp();
+  return { currentAttendee, completeOnboard, onboard, disconnect, setCurrentAttendee };
 }
 
 /** Catálogos y acciones de datos + mutaciones de dominio. */

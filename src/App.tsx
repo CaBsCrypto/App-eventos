@@ -26,7 +26,6 @@ export default function App() {
     currentAttendee,
     completeOnboard: handleOnboardComplete,
     onboard,
-    onboardDemo: handleOnboardDemo,
     disconnect: handleDisconnect,
     addNotification: handleAddNotification,
     clearNotifications,
@@ -67,15 +66,6 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [attendanceFilter, setAttendanceFilter] = useState<string>('All');
-
-  // Onboarding rápido "Joaquín (Demo)" reutilizado por varios CTA.
-  const onboardJoaquin = () =>
-    onboard({
-      name: 'Joaquín Estéban (Demo)',
-      email: 'demo@latamprotocol.com',
-      walletAddress: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
-      walletType: 'Privy',
-    });
 
   // Resolución de invitaciones por URL al montar (?event / ?invite / /invite/:code).
   useEffect(() => {
@@ -475,12 +465,6 @@ export default function App() {
                   >
                     Comenzar Onboarding <ArrowUpRight className="w-4 h-4" />
                   </button>
-                  <button
-                    onClick={onboardJoaquin}
-                    className="px-6 py-3.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    Probar Demo <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-                  </button>
                 </div>
               )}
             </div>
@@ -584,7 +568,6 @@ export default function App() {
             attendee={currentAttendee}
             onBack={() => setSelectedEvent(null)}
             onRegister={() => setShowWalletModal(true)}
-            onOnboardDemo={handleOnboardDemo}
             onCompleteActivity={handleCompleteActivity}
             onAddNotification={handleAddNotification}
             onRegisterEvent={handleRegisterEvent}
@@ -648,12 +631,6 @@ export default function App() {
                   className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm rounded-xl transition-all cursor-pointer shadow-lg shadow-indigo-600/10 hover:scale-[1.01] active:scale-95"
                 >
                   Conectar Privy & Entrar
-                </button>
-                <button
-                  onClick={onboardJoaquin}
-                  className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white font-bold text-xs sm:text-sm rounded-xl transition-all cursor-pointer border border-zinc-750 hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-1.5"
-                >
-                  Probar Demo <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
                 </button>
               </div>
             </div>

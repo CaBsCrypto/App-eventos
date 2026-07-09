@@ -79,9 +79,8 @@ export default function WalletModal({ onOnboardComplete, onClose }: WalletModalP
     setGeneratedWallet(walletAddress);
 
     try {
-      const isDemo = wallet === 'Demo';
-      const tempEmail = isDemo ? 'demo@latamprotocol.com' : `${wallet.toLowerCase()}_${walletAddress.substring(2, 8)}@latamprotocol.com`;
-      const tempName = isDemo ? 'Joaquín Estéban (Demo)' : `${wallet} User ${walletAddress.substring(2, 6)}`;
+      const tempEmail = `${wallet.toLowerCase()}_${walletAddress.substring(2, 8)}@latamprotocol.com`;
+      const tempName = `${wallet} User ${walletAddress.substring(2, 6)}`;
 
       const response = await fetch('/api/attendees/onboard', {
         method: 'POST',
@@ -90,7 +89,7 @@ export default function WalletModal({ onOnboardComplete, onClose }: WalletModalP
           name: tempName,
           email: tempEmail,
           walletAddress,
-          walletType: isDemo ? 'Privy' : wallet
+          walletType: wallet
         })
       });
 
@@ -221,17 +220,6 @@ export default function WalletModal({ onOnboardComplete, onClose }: WalletModalP
                   className="flex items-center gap-2 px-3 py-2.5 bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 rounded-xl text-xs text-left font-medium transition-all"
                 >
                   <span className="text-lg">🔑</span> Privy Social
-                </button>
-              </div>
-
-              {/* Instant Mockup Demo Mode Banner */}
-              <div className="mt-6 pt-5 border-t border-zinc-900 space-y-2">
-                <p className="text-[11px] text-zinc-400 text-center">💡 ¿Quieres ver cómo funciona todo sin registrarte?</p>
-                <button
-                  onClick={() => handleDirectWalletConnect('Demo')}
-                  className="w-full py-3 bg-gradient-to-r from-emerald-600 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/10"
-                >
-                  🚀 Entrar con Perfil Demo (Todo Unlocked)
                 </button>
               </div>
             </div>

@@ -15,7 +15,6 @@ interface EventDetailProps {
   attendee: Attendee | null;
   onBack: () => void;
   onRegister: () => void;
-  onOnboardDemo: () => Promise<void>;
   onCompleteActivity: (activityId: string) => Promise<void>;
   onAddNotification: (title: string, msg: string) => void;
   onRegisterEvent: (eventId: string) => Promise<void>;
@@ -37,8 +36,7 @@ export default function EventDetail({
   event, 
   attendee, 
   onBack, 
-  onRegister, 
-  onOnboardDemo,
+  onRegister,
   onCompleteActivity,
   onAddNotification,
   onRegisterEvent,
@@ -377,7 +375,7 @@ export default function EventDetail({
               </div>
               <div className="text-left">
                 <span className="block text-[10px] text-zinc-500 uppercase font-black leading-none">Organizador</span>
-                <span className="text-xs font-bold text-zinc-200">Joaquín Estéban (Demo)</span>
+                <span className="text-xs font-bold text-zinc-200">Joaquín Estéban</span>
               </div>
             </div>
 
@@ -629,13 +627,7 @@ export default function EventDetail({
                   onClick={onRegister}
                   className="w-full py-3 bg-indigo-650 hover:bg-indigo-600 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-indigo-600/10 cursor-pointer transition-all active:scale-95"
                 >
-                  Conectar Privy
-                </button>
-                <button
-                  onClick={onOnboardDemo}
-                  className="w-full py-3 bg-zinc-950 hover:bg-zinc-850 border border-zinc-850 text-zinc-300 font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  Probar Demo <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                  Iniciar sesión para registrarte
                 </button>
               </div>
             ) : !attendee.registeredEvents?.includes(event.id) ? (

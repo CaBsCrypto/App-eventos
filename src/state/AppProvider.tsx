@@ -67,7 +67,6 @@ interface AppContextValue {
   completeOnboard: (attendee: Attendee) => Promise<void>;
   /** Crea el attendee vía API y finaliza el onboarding (flujo demo/email). */
   onboard: (input: { name: string; email: string; walletAddress: string; walletType: string }) => Promise<Attendee | null>;
-  onboardDemo: () => Promise<void>;
   /** Login real con Google (Supabase Auth OAuth). */
   signInWithGoogle: () => Promise<void>;
   /** ¿El login con Google está configurado (VITE_SUPABASE_*)? */
@@ -344,16 +343,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [completeOnboard, toast],
   );
 
-  const onboardDemo = useCallback(async () => {
-    const randomId = Math.floor(100 + Math.random() * 900);
-    await onboard({
-      name: `Invitado Demo #${randomId}`,
-      email: `demo_${Date.now()}_${randomId}@latamprotocol.com`,
-      walletAddress: '0x' + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join(''),
-      walletType: 'Privy (Demo)',
-    });
-  }, [onboard]);
-
   // --- Login con Google (Supabase Auth) ---
   const signInWithGoogle = useCallback(async () => {
     if (!supabase) {
@@ -616,7 +605,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       currentAttendee,
       completeOnboard,
       onboard,
-      onboardDemo,
       signInWithGoogle,
       googleAuthEnabled: isGoogleAuthEnabled(),
       disconnect,
@@ -656,7 +644,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       addNotification,
     }),
     [
-      events, attendees, notifications, refetch, currentAttendee, completeOnboard, onboard, onboardDemo,
+      events, attendees, notifications, refetch, currentAttendee, completeOnboard, onboard,
       signInWithGoogle, disconnect, view, screen, selectedEvent, follows, toggleFollow, isFollowing,
       profile, updateProfile, saveProfile, isOffline, toggleOffline, offlineQueue,
       enqueueOffline, syncQueue, isSyncing, toasts, toast, dismissToast, accent, xpBurst,
