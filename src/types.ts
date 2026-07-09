@@ -51,6 +51,15 @@ export interface Event {
   ticketPrice?: string;
   timezone?: string;
   shortCode?: string;
+  /** Insignia diseñada por el organizador para este evento (badge designer). */
+  eventBadge?: EventBadge;
+}
+
+/** Insignia creada por el organizador desde el panel Crear. */
+export interface EventBadge {
+  emoji: string;
+  name: string;
+  requirement: string;
 }
 
 export interface DynamicMetadata {
@@ -87,6 +96,13 @@ export interface Attendee {
   calendarSynced: boolean;
   registeredEvents?: string[]; // Optional list of event IDs the attendee has registered for
   registeredActivities?: string[]; // Optional list of activity IDs the attendee has registered for
+  follows?: string[]; // Organizadores seguidos (Descubrir)
+  // Campos de perfil extendido (Ajustes / Historial) — persistidos vía PATCH.
+  user?: string;
+  city?: string;
+  bio?: string;
+  phone?: string;
+  handles?: ProfileHandles;
 }
 
 export interface NotificationItem {
@@ -102,4 +118,90 @@ export interface OfflineAction {
   type: 'CHECK_IN' | 'COMPLETE_ACTIVITY' | 'SUBMIT_FEEDBACK' | 'REGISTER_EVENT';
   payload: any;
   timestamp: string;
+}
+
+/*
+  ============================================================================
+  Tipos del nuevo diseño EventProtocol (handoff "LatAm Protocol Prototipo v3").
+  Aditivos: modelan las pantallas nuevas (Landing/Descubrir/Perfil/Ajustes) y
+  el vocabulario del prototipo (misiones, organizadores, XP). Se alinean con
+  los tipos base de arriba (Event/Activity/Badge/Attendee) para no duplicar.
+  ============================================================================
+*/
+
+/** Vista raíz del prototipo: pública vs. app interna. */
+export type AppView = 'landing' | 'app';
+
+/** Pantalla activa dentro de la app interna (state.screen). */
+export type AppScreen =
+  | 'discover'
+  | 'events'
+  | 'invite'
+  | 'create'
+  | 'leaderboard'
+  | 'badges'
+  | 'history'
+  | 'settings';
+
+/** Misión de evento (equivalente de diseño a `Activity`, con XP). */
+export interface Mission {
+  id: string;
+  title: string;
+  points: number;
+  typeLabel: string;
+  icon: string;
+  required: boolean;
+}
+
+/** Insignia del diseño: general de plataforma o creada por el organizador. */
+export interface BadgeMeta {
+  id: string;
+  emoji: string;
+  name: string;
+  type: 'general' | 'event';
+  org?: string;
+  unlocked: boolean;
+  level: number;
+  desc: string;
+}
+
+/** Organizador seguible (pantalla Descubrir). */
+export interface Organizer {
+  id: string;
+  name: string;
+  logo: string;
+  desc: string;
+  meta: string;
+  followed: boolean;
+}
+
+/** Fila del leaderboard por XP. */
+export interface LeaderboardRow {
+  rank: number;
+  name: string;
+  initials: string;
+  meta: string;
+  points: number;
+  isYou: boolean;
+}
+
+/** Enlaces sociales del perfil (GitHub/LinkedIn/X/Instagram). */
+export interface ProfileHandles {
+  github?: string;
+  linkedin?: string;
+  x?: string;
+  instagram?: string;
+}
+
+/** Perfil extendido (Perfil/Historial + Ajustes). Sobre `Attendee`. */
+export interface Profile {
+  name: string;
+  user: string;
+  email: string;
+  city: string;
+  bio: string;
+  wallet: string;
+  phone?: string;
+  handles: ProfileHandles;
+  xp: number;
 }

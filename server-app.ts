@@ -9,6 +9,7 @@ const KV_URL = 'https://kvdb.io/A2W99yvj2J8JgG81X68p8a/db-store-joaquin';
 // Types for DB
 import { Event, Attendee, Sponsor, Feedback, NotificationItem } from './src/types.js';
 import { INITIAL_EVENTS, SAMPLE_LEADERBOARD_ATTENDEES, INITIAL_SPONSORS, INITIAL_BADGES } from './src/data.js';
+import { isSupabaseEnabled, loadFromSupabase, saveToSupabase } from './server-supabase.js';
 
 interface DatabaseSchema {
   events: Event[];
@@ -23,8 +24,24 @@ function loadDatabase(): DatabaseSchema {
   return db;
 }
 
-// Asynchronous fetch from KV store to sync memory cache
+// Asynchronous fetch from durable store (Supabase si está configurado; si no, KV)
 async function syncDatabaseFromKV() {
+  // Preferir Supabase cuando hay credenciales.
+  if (isSupabaseEnabled()) {
+    try {
+      const data = await loadFromSupabase<DatabaseSchema>();
+      if (data && data.events && data.attendees) {
+        db = data;
+        return;
+      }
+      // Supabase vacío → sembrar con el estado actual (primer arranque).
+      await saveToSupabase(db);
+      return;
+    } catch (e) {
+      console.error('Error loading db from Supabase', e);
+    }
+  }
+
   try {
     const res = await fetch(KV_URL);
     if (res.ok) {
@@ -50,10 +67,17 @@ async function syncDatabaseFromKV() {
 }
 
 async function saveDatabase(data: DatabaseSchema) {
+  db = data; // Keep memory cache updated
+
+  // Persistencia durable: Supabase si está configurado.
+  if (isSupabaseEnabled()) {
+    await saveToSupabase(data);
+    return;
+  }
+
   try {
-    db = data; // Keep memory cache updated
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
-    
+
     // Await KV store sync to guarantee Vercel container keeps alive until stored
     const res = await fetch(KV_URL, {
       method: 'POST',
@@ -128,7 +152,8 @@ app.post('/api/events', async (req, res) => {
     endDate,
     endTime,
     ticketPrice,
-    timezone
+    timezone,
+    eventBadge
   } = req.body;
   
   if (!title || !date || !location || !category) {
@@ -162,7 +187,8 @@ app.post('/api/events', async (req, res) => {
     endTime: endTime || undefined,
     ticketPrice: ticketPrice || 'Gratis',
     timezone: timezone || undefined,
-    shortCode
+    shortCode,
+    eventBadge: eventBadge || undefined
   };
 
   db.events.push(newEvent);
@@ -346,6 +372,63 @@ app.post('/api/attendees/:id/register-event', async (req, res) => {
     await saveDatabase(db);
   }
 
+  res.json(attendee);
+});
+
+// 4.5b Leaderboard real — ranking por XP (fuente de verdad del ranking).
+app.get('/api/leaderboard', (_req, res) => {
+  db = loadDatabase();
+  const ranking = [...db.attendees]
+    .sort((a, b) => (b.points || 0) - (a.points || 0))
+    .map((a, i) => ({
+      rank: i + 1,
+      id: a.id,
+      name: a.name,
+      initials: (a.name || '??').trim().split(/\s+/).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase(),
+      points: a.points || 0,
+      badges: (a.badges || []).length,
+    }));
+  res.json(ranking);
+});
+
+// 4.6a Update attendee profile (Ajustes) — PATCH parcial de campos de perfil.
+app.post('/api/attendees/:id/profile', async (req, res) => {
+  db = loadDatabase();
+  const attendee = db.attendees.find(a => a.id === req.params.id);
+  if (!attendee) {
+    res.status(404).json({ error: 'Attendee not found' });
+    return;
+  }
+  const { name, user, email, city, bio, phone, handles } = req.body;
+  if (typeof name === 'string') attendee.name = name;
+  if (typeof user === 'string') attendee.user = user;
+  if (typeof email === 'string') attendee.email = email;
+  if (typeof city === 'string') attendee.city = city;
+  if (typeof bio === 'string') attendee.bio = bio;
+  if (typeof phone === 'string') attendee.phone = phone;
+  if (handles && typeof handles === 'object') attendee.handles = { ...attendee.handles, ...handles };
+  await saveDatabase(db);
+  res.json(attendee);
+});
+
+// 4.6b Toggle follow organizer (Descubrir)
+app.post('/api/attendees/:id/toggle-follow', async (req, res) => {
+  db = loadDatabase();
+  const attendee = db.attendees.find(a => a.id === req.params.id);
+  if (!attendee) {
+    res.status(404).json({ error: 'Attendee not found' });
+    return;
+  }
+  const { organizerId } = req.body;
+  if (!organizerId) {
+    res.status(400).json({ error: 'organizerId required' });
+    return;
+  }
+  if (!attendee.follows) attendee.follows = [];
+  const idx = attendee.follows.indexOf(organizerId);
+  if (idx >= 0) attendee.follows.splice(idx, 1);
+  else attendee.follows.push(organizerId);
+  await saveDatabase(db);
   res.json(attendee);
 });
 

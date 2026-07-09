@@ -1,15 +1,23 @@
 import { useState } from 'react';
-import { Badge } from '../types';
+import { Badge, Event, EventBadge } from '../types';
 import { Shield, Sparkles, Database, CheckCircle, ExternalLink, RefreshCw } from 'lucide-react';
+import Badge3D from './Badge3D';
 
 interface BadgeDisplayProps {
   badges: Badge[];
   userName: string;
+  events?: Event[];
 }
 
-export default function BadgeDisplay({ badges, userName }: BadgeDisplayProps) {
+export default function BadgeDisplay({ badges, userName, events = [] }: BadgeDisplayProps) {
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedEventBadge, setSelectedEventBadge] = useState<{ badge: EventBadge; eventTitle: string } | null>(null);
+
+  // Insignias creadas por organizadores (badge designer del panel Crear).
+  const organizerBadges = events
+    .filter((e) => e.eventBadge)
+    .map((e) => ({ badge: e.eventBadge as EventBadge, eventTitle: e.title }));
 
   const handleRefreshMetadata = () => {
     setIsRefreshing(true);
@@ -71,6 +79,60 @@ export default function BadgeDisplay({ badges, userName }: BadgeDisplayProps) {
         </div>
       )}
 
+      {/* Insignias creadas por organizadores (badge designer) */}
+      {organizerBadges.length > 0 && (
+        <div className="space-y-3 pt-2 border-t border-zinc-850">
+          <div>
+            <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-indigo-400" /> Creadas por el organizador
+            </h3>
+            <p className="text-xs text-zinc-400">Insignias diseñadas para eventos específicos de la comunidad.</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {organizerBadges.map((ob, i) => (
+              <div
+                key={`${ob.eventTitle}-${i}`}
+                onClick={() => setSelectedEventBadge(ob)}
+                className="relative p-4 bg-zinc-950 hover:bg-zinc-850 border border-zinc-850 hover:border-indigo-500/40 rounded-xl text-center cursor-pointer group transition-all"
+              >
+                <div className="relative mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500/20 via-purple-600/30 to-zinc-900 border-2 border-indigo-500/30 flex items-center justify-center text-3xl group-hover:scale-105 transition-all">
+                  {ob.badge.emoji}
+                </div>
+                <div className="mt-4 space-y-1">
+                  <h4 className="text-xs font-extrabold text-zinc-200 truncate group-hover:text-indigo-400 transition-colors">{ob.badge.name}</h4>
+                  <p className="text-[10px] text-zinc-500 line-clamp-1">{ob.eventTitle}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Modal 3D para insignia de organizador */}
+      {selectedEventBadge && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={(e) => { if (e.target === e.currentTarget) setSelectedEventBadge(null); }}>
+          <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
+            <div className="px-6 py-5 border-b border-zinc-850 flex justify-between items-center">
+              <div>
+                <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-1.5"><Sparkles className="w-4 h-4 text-indigo-400" /> Insignia del evento</h3>
+                <p className="text-[10px] text-zinc-500">{selectedEventBadge.eventTitle}</p>
+              </div>
+              <button onClick={() => setSelectedEventBadge(null)} className="text-zinc-500 hover:text-white bg-zinc-950 hover:bg-zinc-800 rounded-full w-7 h-7 flex items-center justify-center transition-all cursor-pointer">✕</button>
+            </div>
+            <div className="p-6 space-y-4 text-center">
+              <Badge3D emoji={selectedEventBadge.badge.emoji} accent="#6366f1" height={200} />
+              <div>
+                <h4 className="text-lg font-extrabold text-white">{selectedEventBadge.badge.name}</h4>
+                {selectedEventBadge.badge.requirement && (
+                  <p className="text-xs text-zinc-400 mt-1">Requisito: {selectedEventBadge.badge.requirement}</p>
+                )}
+              </div>
+              <div className="text-[10px] text-zinc-500">Arrastra el medallón para girarlo</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Badge NFT Explorer Modal */}
       {selectedBadge && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" id="badge-explorer-modal">
@@ -95,12 +157,10 @@ export default function BadgeDisplay({ badges, userName }: BadgeDisplayProps) {
             {/* Content */}
             <div className="p-6 space-y-5">
               
-              {/* Spinning circular artwork */}
+              {/* Medallón 3D girable (Three.js) */}
               <div className="text-center space-y-2">
-                <div className="relative mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500/30 to-purple-600/30 border-2 border-indigo-500/60 flex items-center justify-center text-5xl shadow-xl shadow-indigo-500/10 animate-pulse">
-                  {selectedBadge.image}
-                  <div className="absolute inset-0 rounded-full border border-indigo-400/20 animate-spin" style={{ animationDuration: '8s' }}></div>
-                </div>
+                <Badge3D emoji={selectedBadge.image} accent="#6366f1" height={200} />
+                <div className="text-[10px] text-zinc-500">Arrastra el medallón para girarlo</div>
                 <div className="pt-2">
                   <h4 className="text-lg font-extrabold text-white">{selectedBadge.title}</h4>
                   <p className="text-xs text-zinc-400 px-4">{selectedBadge.description}</p>
