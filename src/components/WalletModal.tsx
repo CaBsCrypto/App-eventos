@@ -1,11 +1,59 @@
-import React, { useState } from 'react';
-import { Mail, Shield, Wallet, Chrome, Twitter, Apple, CheckCircle2, ArrowRight } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Mail, Shield, Wallet, Chrome, Twitter, Apple, CheckCircle2, ArrowRight, Zap } from 'lucide-react';
 import { Attendee, WalletType } from '../types';
 import { useApp } from '../state/AppProvider';
+import { isPrivyEnabled } from '../state/PrivyAppProvider';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
 
 interface WalletModalProps {
   onOnboardComplete: (attendee: Attendee) => void;
   onClose: () => void;
+}
+
+/**
+ * Login real con Privy: wallet embebida en Avalanche Fuji. Componente
+ * aislado a propósito — sus hooks (usePrivy/useWallets) solo se montan
+ * cuando el árbol está envuelto en <PrivyProvider> (ver isPrivyEnabled()),
+ * así nunca truena si Privy no está configurado.
+ */
+function PrivyLoginButton({ onOnboardComplete, onClose }: WalletModalProps) {
+  const { ready, authenticated, user, login } = usePrivy();
+  const { wallets } = useWallets();
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    if (!ready || !authenticated || !user || done) return;
+    const embedded = wallets.find((w) => w.walletClientType === 'privy') || wallets[0];
+    if (!embedded) return;
+
+    const email = (user.email?.address || user.google?.email || `${user.id}@privy.eventprotocol`) as string;
+    const name = (user.google?.name as string | undefined) || email.split('@')[0];
+
+    setBusy(true);
+    setDone(true);
+    fetch('/api/attendees/onboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, walletAddress: embedded.address, walletType: 'Privy' }),
+    })
+      .then((r) => r.json())
+      .then((attendee: Attendee) => {
+        onOnboardComplete(attendee);
+        onClose();
+      })
+      .catch(() => setBusy(false));
+  }, [ready, authenticated, user, wallets, done, onOnboardComplete, onClose]);
+
+  return (
+    <button
+      onClick={() => login()}
+      disabled={!ready || busy}
+      className="w-full py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 disabled:opacity-60 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-lg shadow-red-600/10"
+    >
+      <Zap className="w-4 h-4" /> {busy ? 'Conectando wallet...' : 'Conectar wallet Privy (Avalanche)'}
+    </button>
+  );
 }
 
 export default function WalletModal({ onOnboardComplete, onClose }: WalletModalProps) {
@@ -144,6 +192,17 @@ export default function WalletModal({ onOnboardComplete, onClose }: WalletModalP
 
           {step === 'info' && (
             <div className="space-y-4">
+              {/* Wallet embebida real en Avalanche Fuji (Privy) */}
+              {isPrivyEnabled() && (
+                <>
+                  <PrivyLoginButton onOnboardComplete={onOnboardComplete} onClose={onClose} />
+                  <div className="relative my-1 text-center">
+                    <span className="absolute inset-x-0 top-1/2 h-px bg-zinc-800"></span>
+                    <span className="relative bg-zinc-950 px-3 text-[10px] uppercase font-bold text-zinc-500 tracking-widest">o continuar con</span>
+                  </div>
+                </>
+              )}
+
               {/* Login real con Google (Supabase Auth) */}
               {googleAuthEnabled && (
                 <>

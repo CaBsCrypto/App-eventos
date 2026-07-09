@@ -38,6 +38,7 @@ const KV_URL = 'https://kvdb.io/A2W99yvj2J8JgG81X68p8a/db-store-joaquin';
 import { Event, Attendee, Sponsor, Feedback, NotificationItem } from './src/types.js';
 import { INITIAL_EVENTS, SAMPLE_LEADERBOARD_ATTENDEES, INITIAL_SPONSORS, INITIAL_BADGES } from './src/data.js';
 import { isSupabaseEnabled, loadFromSupabase, saveToSupabase } from './server-supabase.js';
+import { isAvalancheMintingEnabled, mintBadgeOnChain } from './server-avalanche.js';
 
 interface DatabaseSchema {
   events: Event[];
@@ -181,7 +182,8 @@ app.post('/api/events', async (req, res) => {
     endTime,
     ticketPrice,
     timezone,
-    eventBadge
+    eventBadge,
+    secretPhrase
   } = req.body;
   
   if (!title || !date || !location || !category) {
@@ -216,7 +218,8 @@ app.post('/api/events', async (req, res) => {
     ticketPrice: ticketPrice || 'Gratis',
     timezone: timezone || undefined,
     shortCode,
-    eventBadge: eventBadge || undefined
+    eventBadge: eventBadge || undefined,
+    secretPhrase: secretPhrase ? String(secretPhrase).trim() : undefined
   };
 
   db.events.push(newEvent);
@@ -403,6 +406,65 @@ app.post('/api/attendees/:id/register-event', async (req, res) => {
   res.json(attendee);
 });
 
+/**
+ * Acuña la insignia del evento a un asistente ya acreditado (check-in real o
+ * frase secreta). Best-effort: si el minteo on-chain no está configurado o
+ * falla, degrada a un registro simulado — nunca bloquea el flujo del usuario.
+ */
+async function mintEventBadge(attendee: Attendee, event: Event): Promise<void> {
+  const badgeId = `poap_${event.id}`;
+  if (attendee.badges.find(b => b.id === badgeId)) return; // ya acuñada
+
+  const meta = {
+    name: event.eventBadge?.name || `POAP: ${event.title}`,
+    description: `Prueba de asistencia verificada on-chain para "${event.title}".`,
+    image: event.image,
+  };
+  const metadataUri = 'data:application/json;base64,' + Buffer.from(JSON.stringify(meta)).toString('base64');
+
+  let dynamicMetadata: any = {
+    level: 1,
+    activitiesCompleted: 0,
+    completionTime: new Date().toISOString(),
+  };
+
+  if (isAvalancheMintingEnabled() && attendee.walletAddress) {
+    try {
+      const result = await mintBadgeOnChain(attendee.walletAddress, event.id, metadataUri);
+      dynamicMetadata = {
+        ...dynamicMetadata,
+        txHash: result.txHash,
+        chain: result.chainName,
+        contractAddress: result.contractAddress,
+        blockNumber: result.blockNumber,
+      };
+      attendee.badges.push({
+        id: badgeId,
+        title: meta.name,
+        description: meta.description,
+        image: event.eventBadge?.emoji || '🎟️',
+        unlockedAt: new Date().toISOString(),
+        nftId: result.tokenId,
+        dynamicMetadata,
+      });
+      return;
+    } catch (e) {
+      console.error('[avalanche] Minteo real falló, degradando a simulado:', e);
+    }
+  }
+
+  // Fallback simulado (sin config de Avalanche, o minteo real falló).
+  attendee.badges.push({
+    id: badgeId,
+    title: meta.name,
+    description: meta.description,
+    image: event.eventBadge?.emoji || '🎟️',
+    unlockedAt: new Date().toISOString(),
+    nftId: `SIM-${Date.now()}`,
+    dynamicMetadata: { ...dynamicMetadata, chain: 'Simulado (sin Avalanche configurado)' },
+  });
+}
+
 // === ACREDITACIÓN POR QR ===
 
 // A) Credencial del asistente para un evento → token firmado (para su QR).
@@ -466,8 +528,43 @@ app.post('/api/events/:eventId/checkin', async (req, res) => {
 
   const at = new Date().toISOString();
   attendee.checkins.push({ eventId, at });
+  await mintEventBadge(attendee, event); // acuña la insignia al validar el ingreso
   await saveDatabase(db);
   res.json({ attendee: { id: attendee.id, name: attendee.name, email: attendee.email }, at, already: false });
+});
+
+// D) Canje por frase secreta (alternativa al QR: la anuncia el organizador en el evento).
+app.post('/api/events/:eventId/redeem', async (req, res) => {
+  db = loadDatabase();
+  const { eventId } = req.params;
+  const { attendeeId, phrase } = req.body;
+
+  const event = db.events.find(e => e.id === eventId);
+  const attendee = db.attendees.find(a => a.id === attendeeId);
+  if (!event || !attendee) {
+    res.status(404).json({ error: 'Asistente o evento no encontrado' });
+    return;
+  }
+  if (!event.secretPhrase) {
+    res.status(400).json({ error: 'Este evento no tiene una frase secreta configurada' });
+    return;
+  }
+  if (String(phrase || '').trim().toLowerCase() !== event.secretPhrase.trim().toLowerCase()) {
+    res.status(400).json({ error: 'Frase incorrecta' });
+    return;
+  }
+  if (!(attendee.registeredEvents || []).includes(eventId)) {
+    res.status(400).json({ error: 'El asistente no está registrado en este evento' });
+    return;
+  }
+
+  if (!attendee.checkins) attendee.checkins = [];
+  if (!attendee.checkins.find(c => c.eventId === eventId)) {
+    attendee.checkins.push({ eventId, at: new Date().toISOString() });
+  }
+  await mintEventBadge(attendee, event);
+  await saveDatabase(db);
+  res.json({ attendee, redeemed: true });
 });
 
 // C) Lista de acreditados de un evento (para el panel del organizador).

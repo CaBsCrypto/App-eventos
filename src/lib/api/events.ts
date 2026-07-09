@@ -1,6 +1,6 @@
 /** Dominio: eventos. Mapea los endpoints `/api/events*` del backend. */
 import { http } from './client';
-import type { Event } from '../../types';
+import type { Event, Attendee } from '../../types';
 
 export const eventsApi = {
   /** GET /api/events */
@@ -41,4 +41,8 @@ export const eventsApi = {
     http.get<{ attendeeId: string; name: string; email: string; at: string }[]>(
       `/api/events/${eventId}/accredited`,
     ),
+
+  /** POST /api/events/:id/redeem — canje por frase secreta (acredita + acuña). */
+  redeem: (eventId: string, payload: { attendeeId: string; phrase: string }) =>
+    http.post<{ attendee: Attendee; redeemed: boolean }>(`/api/events/${eventId}/redeem`, payload),
 };

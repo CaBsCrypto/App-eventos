@@ -53,6 +53,8 @@ export interface Event {
   shortCode?: string;
   /** Insignia diseñada por el organizador para este evento (badge designer). */
   eventBadge?: EventBadge;
+  /** Frase secreta anunciada en el evento; canjeable por la insignia on-chain. */
+  secretPhrase?: string;
 }
 
 /** Insignia creada por el organizador desde el panel Crear. */
