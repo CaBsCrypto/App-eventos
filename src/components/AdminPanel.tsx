@@ -6,6 +6,7 @@ import {
   ChevronRight, X, Sparkle, Settings, Info, Mail, AlertCircle, ArrowLeft
 } from 'lucide-react';
 import { Event, Attendee, EventCategory, Activity, ActivityType, Sponsor } from '../types';
+import { api } from '../lib/api';
 
 const TIMEZONE_OPTIONS = [
   { value: 'America/Santiago', label: 'Santiago, Chile (GMT-04:00)' },
@@ -370,7 +371,13 @@ export default function AdminPanel({ events, attendees, onAddEvent, onAddNotific
     ? attendees.filter(a => a.registeredEvents?.includes(currentEvent.id))
     : [];
   
-  const checkedInCount = registeredGuests.filter(a => a.checkedIn).length;
+  // ¿El asistente está acreditado (check-in por QR) para el evento actual?
+  // Por-evento: attendee.checkins es una lista {eventId, at}[]. El legado
+  // `a.checkedIn` es un booleano global y no distingue entre eventos, así
+  // que ya no se usa para "asistencia real".
+  const isAccredited = (a: Attendee) => !!currentEvent && (a.checkins || []).some(c => c.eventId === currentEvent.id);
+
+  const checkedInCount = currentEvent ? registeredGuests.filter(isAccredited).length : 0;
   const attendanceRate = registeredGuests.length > 0 ? Math.round((checkedInCount / registeredGuests.length) * 100) : 0;
   const totalXPGenerated = registeredGuests.reduce((acc, curr) => acc + curr.points, 0);
 
@@ -1559,9 +1566,9 @@ export default function AdminPanel({ events, attendees, onAddEvent, onAddNotific
                                   </td>
                                   <td>
                                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                      a.checkedIn ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
+                                      isAccredited(a) ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
                                     }`}>
-                                      {a.checkedIn ? 'Check-In' : 'No Check-In'}
+                                      {isAccredited(a) ? 'Acreditado (QR)' : 'Sin acreditar'}
                                     </span>
                                   </td>
                                   <td className="font-bold text-indigo-400">{a.points} XP</td>
@@ -1583,25 +1590,16 @@ export default function AdminPanel({ events, attendees, onAddEvent, onAddNotific
                                           </button>
                                         </>
                                       )}
-                                      {!a.checkedIn && (
+                                      {!isAccredited(a) && (
                                         <button
                                           onClick={async () => {
-                                            const checkInAct = currentEvent.activities.find(act => act.type === 'CheckIn');
-                                            if (checkInAct) {
-                                              const res = await fetch(`/api/attendees/${a.id}/activities/complete`, {
-                                                method: 'POST',
-                                                headers: { 'Content-Type': 'application/json' },
-                                                body: JSON.stringify({ activityId: checkInAct.id, eventId: currentEvent.id })
-                                              });
-                                              if (res.ok) {
-                                                onAddNotification('🎟️ Check-In Completado', `Se acreditó de manera manual el check-in para ${a.name}.`);
-                                                window.location.reload();
-                                              }
-                                            }
+                                            const res = await api.events.checkin(currentEvent.id, { attendeeId: a.id });
+                                            onAddNotification('🎟️ Acreditación manual', `Se acreditó el ingreso de ${res.attendee.name} para este evento.`);
+                                            onAddEvent(currentEvent); // reutilizado como trigger de refetch (ver App.tsx)
                                           }}
                                           className="px-2.5 py-1 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white rounded-lg text-[10px] font-bold transition-all cursor-pointer"
                                         >
-                                          Check-In Presencial
+                                          Acreditar manualmente
                                         </button>
                                       )}
                                     </div>
