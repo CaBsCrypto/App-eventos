@@ -22,4 +22,23 @@ export const eventsApi = {
     activityId: string,
     payload: { attendeeName: string; rating: number; comment: string },
   ) => http.post<Event>(`/api/events/${eventId}/activities/${activityId}/feedback`, payload),
+
+  // --- Acreditación por QR ---
+
+  /** POST /api/events/:id/credential — token firmado para el QR del asistente. */
+  credential: (eventId: string, attendeeId: string) =>
+    http.post<{ token: string }>(`/api/events/${eventId}/credential`, { attendeeId }),
+
+  /** POST /api/events/:id/checkin — acredita por token (QR) o attendeeId (manual). */
+  checkin: (eventId: string, payload: { token?: string; attendeeId?: string }) =>
+    http.post<{ attendee: { id: string; name: string; email: string }; at: string; already: boolean }>(
+      `/api/events/${eventId}/checkin`,
+      payload,
+    ),
+
+  /** GET /api/events/:id/accredited — lista de acreditados del evento. */
+  accredited: (eventId: string) =>
+    http.get<{ attendeeId: string; name: string; email: string; at: string }[]>(
+      `/api/events/${eventId}/accredited`,
+    ),
 };

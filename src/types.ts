@@ -97,6 +97,7 @@ export interface Attendee {
   registeredEvents?: string[]; // Optional list of event IDs the attendee has registered for
   registeredActivities?: string[]; // Optional list of activity IDs the attendee has registered for
   follows?: string[]; // Organizadores seguidos (Descubrir)
+  checkins?: { eventId: string; at: string }[]; // Acreditaciones (ingreso validado por QR)
   // Campos de perfil extendido (Ajustes / Historial) — persistidos vía PATCH.
   user?: string;
   city?: string;
