@@ -128,6 +128,8 @@ export default function AdminPanel({ events, attendees, onAddEvent, onAddNotific
   const [badgeEmoji, setBadgeEmoji] = useState('🏅');
   const [badgeName, setBadgeName] = useState('');
   const [badgeReq, setBadgeReq] = useState('');
+  // Frase secreta anunciada en el evento (alternativa al QR para acreditar y acuñar).
+  const [secretPhrase, setSecretPhrase] = useState('');
 
   // Activities Creation States
   const [newActTitle, setNewActTitle] = useState('');
@@ -223,7 +225,8 @@ export default function AdminPanel({ events, attendees, onAddEvent, onAddNotific
           timezone,
           eventBadge: badgeName.trim()
             ? { emoji: badgeEmoji, name: badgeName.trim(), requirement: badgeReq.trim() }
-            : undefined
+            : undefined,
+          secretPhrase: secretPhrase.trim() || undefined
         })
       });
 
@@ -257,6 +260,7 @@ export default function AdminPanel({ events, attendees, onAddEvent, onAddNotific
         setBadgeEmoji('🏅');
         setBadgeName('');
         setBadgeReq('');
+        setSecretPhrase('');
       }
     } catch (err) {
       console.error(err);
@@ -950,6 +954,20 @@ export default function AdminPanel({ events, attendees, onAddEvent, onAddNotific
                   <div className="text-[10px] text-zinc-500 leading-snug break-words">{badgeReq.trim() || 'Requisito para obtenerla'}</div>
                   <span className="text-[8px] uppercase tracking-wider font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/30 px-2 py-0.5 rounded-full mt-1">Preview</span>
                 </div>
+              </div>
+
+              <div className="pt-4 border-t border-zinc-850 space-y-2">
+                <label className="text-[10px] uppercase tracking-wider font-bold text-zinc-500">Frase secreta del evento (opcional)</label>
+                <input
+                  type="text"
+                  value={secretPhrase}
+                  onChange={(e) => setSecretPhrase(e.target.value)}
+                  placeholder="Ej. avalanche2026"
+                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-100 focus:outline-none focus:border-indigo-500"
+                />
+                <p className="text-[11px] text-zinc-400">
+                  Anunciala en vivo durante el evento. Los asistentes que la ingresen en su invitación quedan acreditados y reciben la insignia — una alternativa al escaneo de QR (ej. para eventos sin señal o sin cámara).
+                </p>
               </div>
             </div>
 
