@@ -9,6 +9,7 @@ import { mintPOAPForEvent } from '../services/blockchain/index.js';
 import QRCode from 'qrcode';
 import { api } from '../lib/api';
 import Accreditation from './Accreditation';
+import { useApp } from '../state/AppProvider';
 
 interface EventDetailProps {
   event: Event;
@@ -70,10 +71,35 @@ export default function EventDetail({
   const [showAccreditation, setShowAccreditation] = useState<boolean>(false);
   const [credentialQr, setCredentialQr] = useState<string>('');
 
+  // Canje por frase secreta (alternativa al QR para acreditar el ingreso).
+  const { refetch, toast } = useApp();
+  const [showRedeem, setShowRedeem] = useState<boolean>(false);
+  const [phraseInput, setPhraseInput] = useState<string>('');
+  const [redeeming, setRedeeming] = useState<boolean>(false);
+  const [redeemError, setRedeemError] = useState<string>('');
+
   const inviteUrl = `${window.location.origin}/invite/${event.shortCode || event.id}`;
 
   // Credencial QR del asistente (token firmado) cuando está registrado al evento.
   const isRegisteredToEvent = !!attendee && (attendee.registeredEvents || []).includes(event.id);
+  const isAccredited = !!attendee && (attendee.checkins || []).some((c) => c.eventId === event.id);
+
+  const handleRedeem = async () => {
+    if (!attendee || !phraseInput.trim()) return;
+    setRedeeming(true);
+    setRedeemError('');
+    try {
+      await api.events.redeem(event.id, { attendeeId: attendee.id, phrase: phraseInput.trim() });
+      toast('🎉 ¡Frase correcta!', 'Quedaste acreditado/a y tu insignia fue acuñada.');
+      setPhraseInput('');
+      setShowRedeem(false);
+      await refetch();
+    } catch (e: any) {
+      setRedeemError(e?.message || 'Frase incorrecta');
+    } finally {
+      setRedeeming(false);
+    }
+  };
   useEffect(() => {
     if (!attendee || !isRegisteredToEvent) { setCredentialQr(''); return; }
     let active = true;
@@ -860,6 +886,41 @@ export default function EventDetail({
                 <div className="w-44 h-44 mx-auto rounded-xl ep-skeleton" />
               )}
               <p className="font-mono text-[10px] text-zinc-500">{attendee?.name}</p>
+
+              {!isAccredited && (
+                <div className="pt-3 border-t border-zinc-850 text-left space-y-2">
+                  {!showRedeem ? (
+                    <button
+                      onClick={() => setShowRedeem(true)}
+                      className="w-full text-center text-[11px] font-bold text-indigo-400 hover:text-indigo-300 cursor-pointer"
+                    >
+                      🔑 ¿Tenés la frase secreta del evento?
+                    </button>
+                  ) : (
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase tracking-wider font-bold text-zinc-500">Frase secreta</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={phraseInput}
+                          onChange={(e) => { setPhraseInput(e.target.value); setRedeemError(''); }}
+                          onKeyDown={(e) => { if (e.key === 'Enter') handleRedeem(); }}
+                          placeholder="Escuchala en el evento..."
+                          className="flex-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-100 focus:outline-none focus:border-indigo-500"
+                        />
+                        <button
+                          onClick={handleRedeem}
+                          disabled={redeeming || !phraseInput.trim()}
+                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shrink-0"
+                        >
+                          {redeeming ? '...' : 'Canjear'}
+                        </button>
+                      </div>
+                      {redeemError && <p className="text-[10px] text-rose-400">{redeemError}</p>}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

@@ -157,10 +157,18 @@ app.use(async (req, res, next) => {
 
 // --- API ROUTES ---
 
+/** Quita `secretPhrase` antes de devolver un evento al cliente (nunca debe
+ * viajar por la red pública — se anuncia en vivo y se valida solo server-side
+ * en /redeem). */
+function redactEvent(event: Event): Event {
+  const { secretPhrase, ...rest } = event;
+  return rest as Event;
+}
+
 // 1. Get all events
 app.get('/api/events', (req, res) => {
   db = loadDatabase();
-  res.json(db.events);
+  res.json(db.events.map(redactEvent));
 });
 
 app.post('/api/events', async (req, res) => {
@@ -234,7 +242,7 @@ app.post('/api/events', async (req, res) => {
   });
 
   await saveDatabase(db);
-  res.status(201).json(newEvent);
+  res.status(201).json(redactEvent(newEvent));
 });
 
 // 2.5 Get event by invite short code
@@ -251,7 +259,7 @@ app.get('/api/events/by-code/:code', (req, res) => {
   }
 
   if (event) {
-    res.json(event);
+    res.json(redactEvent(event));
   } else {
     res.status(404).json({ error: 'Event not found with this invite code' });
   }

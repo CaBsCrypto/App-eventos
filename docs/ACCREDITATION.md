@@ -1,37 +1,31 @@
-# Acreditación por QR
+# Acreditación de asistentes
 
-Valida el ingreso de asistentes a un evento: cada asistente registrado tiene
-una **credencial QR firmada**; el organizador la **escanea con la cámara** (o
-busca a la persona por **nombre/email**) para acreditar su ingreso.
+Dos vías, ambas disparan el mismo minteo de insignia (`mintEventBadge`,
+best-effort: real on-chain si Avalanche está configurado, si no simulado).
 
-## Cómo se usa
-- **Asistente**: en la invitación del evento (registrado) → card **"Tu
-  credencial de ingreso"** con su QR. Lo muestra en la puerta.
-- **Organizador**: en la invitación → botón **"Acreditar asistentes"** → panel con:
-  - **Escanear QR** (cámara del dispositivo, `html5-qrcode`).
-  - **Buscar** por nombre/email → **Acreditar** con un toque.
-  - **Lista de acreditados** en vivo (nombre + hora).
+## 1. Credencial QR
+Cada asistente registrado tiene un QR con un **token firmado (HMAC)** en su
+invitación. El organizador escanea (o busca por nombre/email) desde el panel
+**"Acreditar asistentes"**. Ver `Accreditation.tsx` y `POST /api/events/:id/checkin`.
 
-## Seguridad
-El QR lleva un **token HMAC** firmado por el server (`CHECKIN_SECRET`):
-`base64url(eventId.attendeeId.hmac)`. El backend verifica la firma al escanear,
-así que **no se puede falsificar** un QR de ingreso. El check-in manual (por
-attendeeId) es de confianza del organizador.
+## 2. Frase secreta
+Alternativa sin cámara/QR — pensada para eventos sin señal o sin escáner a
+mano. El organizador la define al crear el evento (**Crear → Diseña la
+insignia del evento → Frase secreta**, opcional). La anuncia en vivo; el
+asistente la ingresa en su invitación ("¿Tenés la frase secreta del evento?").
 
-## Endpoints
-- `POST /api/events/:eventId/credential` `{ attendeeId }` → `{ token }` (requiere estar registrado al evento).
-- `POST /api/events/:eventId/checkin` `{ token }` **o** `{ attendeeId }` → acredita (idempotente; rechaza token inválido/otro-evento/no-registrado).
-- `GET /api/events/:eventId/accredited` → lista de acreditados.
+- Backend: `POST /api/events/:id/redeem` `{ attendeeId, phrase }` — valida
+  case-insensitive/trim, idempotente, rechaza si no hay frase configurada o
+  el asistente no está registrado.
+- **Seguridad**: `secretPhrase` nunca viaja en las respuestas públicas del API
+  (`GET /events`, `GET /events/by-code/:code`, ni siquiera en la respuesta del
+  `POST /events` de creación) — se valida únicamente server-side. Ver
+  `redactEvent()` en `server-app.ts`.
+- Frontend: `EventDetail.tsx`, sección debajo de la credencial QR (solo visible
+  si el asistente está registrado y aún no acreditado).
 
-Estado: `Attendee.checkins: { eventId, at }[]`. Persistido en Supabase/JSON.
-
-## Config
-- `CHECKIN_SECRET` (env, opcional): secreto para firmar. Fallback demo si no está.
-- Cámara: requiere **HTTPS** (ya lo tenemos en Vercel) + permiso del usuario.
-  Si no hay cámara/permiso, el panel cae a la búsqueda por nombre/email.
-
-## Notas / futuro
-- Con muchos check-ins simultáneos, el modelo JSONB puede tener carreras de
-  escritura; el **paso 2 de Supabase** (tabla `checkins` relacional) lo haría atómico.
-- No hay rol de organizador real (cualquiera con acceso al evento puede abrir el
-  panel), consistente con el modelo actual sin auth de organizador.
+## Estado on-chain
+Si `AVALANCHE_MINTER_PRIVATE_KEY` + `AVALANCHE_BADGE_CONTRACT` están
+configurados, la insignia se acuña de verdad en Avalanche Fuji a la wallet del
+asistente (paga el gas la wallet del proyecto). Sin esa config, degrada a un
+registro simulado — nunca bloquea la acreditación en sí.
